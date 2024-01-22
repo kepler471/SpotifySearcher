@@ -2,13 +2,34 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>LSApplicationQueriesSchemes</key>
-    <array>
-        <string>spotify</string>
-    </array>
-    <key>NSAppleScriptEnabled</key>
-    <true/>
-    <key>NSAppleEventsUsageDescription</key>
-    <string>This application needs permission to control Spotify for music playback.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.kepler471.SpotifySearcher</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>spotify-api-example-app</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.kepler471.SpotifySearcher</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>I</string>
+			</array>
+		</dict>
+	</array>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>spotify</string>
+	</array>
+	<key>NSAppleScriptEnabled</key>
+	<true/>
 </dict>
 </plist>

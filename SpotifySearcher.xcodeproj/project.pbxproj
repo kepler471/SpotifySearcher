@@ -14,6 +14,8 @@
 		659B442F2B518ED200B74938 /* SpotifySearcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 659B442E2B518ED200B74938 /* SpotifySearcherTests.swift */; };
 		659B44392B518ED200B74938 /* SpotifySearcherUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 659B44382B518ED200B74938 /* SpotifySearcherUITests.swift */; };
 		659B443B2B518ED200B74938 /* SpotifySearcherUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 659B443A2B518ED200B74938 /* SpotifySearcherUITestsLaunchTests.swift */; };
+		65F059B82B5D4DA900B5B6D7 /* Spotify.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65F059B72B5D4DA900B5B6D7 /* Spotify.swift */; };
+		65F059BE2B5EBEF800B5B6D7 /* MediaViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65F059BD2B5EBEF800B5B6D7 /* MediaViews.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,6 +36,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		653305BA2B58C81900FE86B8 /* AuthTest.playground */ = {isa = PBXFileReference; lastKnownFileType = file.playground; name = AuthTest.playground; path = SpotifySearcher/AuthTest.playground; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		659B44192B518ED000B74938 /* SpotifySearcher.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpotifySearcher.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		659B441C2B518ED000B74938 /* SpotifySearcherApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifySearcherApp.swift; sourceTree = "<group>"; };
 		659B441E2B518ED000B74938 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -46,6 +49,9 @@
 		659B44382B518ED200B74938 /* SpotifySearcherUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifySearcherUITests.swift; sourceTree = "<group>"; };
 		659B443A2B518ED200B74938 /* SpotifySearcherUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifySearcherUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		65A5D0C12B5321AC00FA102C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		65F059B72B5D4DA900B5B6D7 /* Spotify.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spotify.swift; sourceTree = "<group>"; };
+		65F059B92B5D6FFA00B5B6D7 /* SwiftLearning.playground */ = {isa = PBXFileReference; lastKnownFileType = file.playground; path = SwiftLearning.playground; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
+		65F059BD2B5EBEF800B5B6D7 /* MediaViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaViews.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,6 +82,8 @@
 		659B44102B518ED000B74938 = {
 			isa = PBXGroup;
 			children = (
+				65F059B92B5D6FFA00B5B6D7 /* SwiftLearning.playground */,
+				653305BA2B58C81900FE86B8 /* AuthTest.playground */,
 				659B441B2B518ED000B74938 /* SpotifySearcher */,
 				659B442D2B518ED200B74938 /* SpotifySearcherTests */,
 				659B44372B518ED200B74938 /* SpotifySearcherUITests */,
@@ -98,7 +106,8 @@
 			children = (
 				65A5D0C12B5321AC00FA102C /* Info.plist */,
 				659B441C2B518ED000B74938 /* SpotifySearcherApp.swift */,
-				659B441E2B518ED000B74938 /* ContentView.swift */,
+				65F059B72B5D4DA900B5B6D7 /* Spotify.swift */,
+				65F059BC2B5EBECB00B5B6D7 /* Views */,
 				659B44202B518ED100B74938 /* Assets.xcassets */,
 				659B44252B518ED100B74938 /* SpotifySearcher.entitlements */,
 				659B44222B518ED100B74938 /* Preview Content */,
@@ -129,6 +138,15 @@
 				659B443A2B518ED200B74938 /* SpotifySearcherUITestsLaunchTests.swift */,
 			);
 			path = SpotifySearcherUITests;
+			sourceTree = "<group>";
+		};
+		65F059BC2B5EBECB00B5B6D7 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				659B441E2B518ED000B74938 /* ContentView.swift */,
+				65F059BD2B5EBEF800B5B6D7 /* MediaViews.swift */,
+			);
+			path = Views;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -219,6 +237,10 @@
 				Base,
 			);
 			mainGroup = 659B44102B518ED000B74938;
+			packageReferences = (
+				651C3D0B2B583D8800A9BC25 /* XCRemoteSwiftPackageReference "SpotifyAPI" */,
+				651C3D0C2B584D7800A9BC25 /* XCRemoteSwiftPackageReference "SpotifyAPIServer" */,
+			);
 			productRefGroup = 659B441A2B518ED000B74938 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -261,6 +283,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				65F059B82B5D4DA900B5B6D7 /* Spotify.swift in Sources */,
+				65F059BE2B5EBEF800B5B6D7 /* MediaViews.swift in Sources */,
 				659B441F2B518ED000B74938 /* ContentView.swift in Sources */,
 				659B441D2B518ED000B74938 /* SpotifySearcherApp.swift in Sources */,
 			);
@@ -433,10 +457,12 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SpotifySearcher/Info.plist;
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "This application needs permission to control Spotify for music playback.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
+					"$(SRCROOT)",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kepler471.SpotifySearcher;
@@ -463,10 +489,12 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SpotifySearcher/Info.plist;
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "This application needs permission to control Spotify for music playback.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
+					"$(SRCROOT)",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kepler471.SpotifySearcher;
@@ -585,6 +613,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		651C3D0B2B583D8800A9BC25 /* XCRemoteSwiftPackageReference "SpotifyAPI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Peter-Schorn/SpotifyAPI.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.2.4;
+			};
+		};
+		651C3D0C2B584D7800A9BC25 /* XCRemoteSwiftPackageReference "SpotifyAPIServer" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Peter-Schorn/SpotifyAPIServer.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
 	};
 	rootObject = 659B44112B518ED000B74938 /* Project object */;
 }
