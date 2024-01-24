@@ -12,7 +12,7 @@ import Foundation
 import AppKit
 
 
-var accessToken: String = "BQCZ2QPepikofuuYtup6S73XE0QWonpwdw6iMuaXK9Cl1T-Oxp8HQw-Zc3UhfmIwdMer_9qhwQ7aL7zQcAGwm0Zl8KeqbPzJwEhHdP2udgdPWyzz0q8ySU86g0pP4VscT05BUocR1U5RY_syN-aEcNrqS69K6I3nlLepWDZ-vj3SnSTU47TPW-tJajYCqguPVVJXeLgzypUBuSZq"
+var accessToken: String = "BQAXbx6tajRIdEaFi1jFZw-2aRvXKL_1z90dog_Ij0DBTJm4ZAT80VMj_jXHJyh1G1bT6VAjwu27ysR3uMaTBaP8HLgwD9FNFxPqh-8UVFxZ55mKpudZi-tUP5OO9wBUmn_YvA3cP8ni2sgZYCcnbJ-GjlCuYCGyRNmhtYhRo0vPeflpZhO1LpZR1zbOmtnfPs_BZT0l8GJdDh6U"
 var refreshToken: String = "AQAE5jgBvR80ID05sOxin660JIMHQmQWUfLDp48JVkKmryQF8RExPESmrcsAndmdxBnLmboudqk7Gi5R_YBGv96-5v5d8TQInaDpamAmSrTxSm3AjRXzHGXC7nyS2Qn0YQk"
 var redirect_uri = "spotify-api-example-app://login-callback"
 
@@ -37,6 +37,8 @@ struct ContentView: View {
     )
     @State private var searchResults: SpotifySearchResponse
     @State private var selection: String?
+    @State private var selectionAlbum: String?
+    @State private var selectionArtist: String?
     @State private var selectedTab: Int = 0
     @State private var listSelected: Bool = false
 //    @FocusState private var focusId: String?
@@ -54,44 +56,30 @@ struct ContentView: View {
                     MySpotifyAPI.shared.searchSpotify(query: inputText) { results in
                         searchResults = results
                         if let firstTrackId = searchResults.tracks.items.first?.id {
-//                            focusId = firstTrackId
+                            //                            focusId = firstTrackId
                             selection = firstTrackId
                             print("enter pressed -> now selecting first track")
                         }
                     }
-                    //                    focusId = searchResults[0].id
                 }
-            //                .onMoveCommand(perform: { _ in
-            //                    if let firstTrackId = searchResults.first?.id {
-            //                        focusId = firstTrackId
-            //                    }
-            //                })
-                .onKeyPress(keys: [.downArrow], action: { _ in
+                .onKeyPress(keys: [.downArrow]) { _ in
                     if let firstTrackId = searchResults.tracks.items.first?.id {
-//                        focusId = firstTrackId
                         selection = firstTrackId
                     }
                     return .handled
-                })
-//                .focusable()
-            //                .focusable(interactions: .edit)
-//                .focused($focusId, equals: "search")
-            //                .focusSection()
-                .id("search") // use for FocusState
+                }
+                .id("search")
             
             HStack {
                 Button(action: {selectedTab = (selectedTab + 1) % 3}) {}
                     .keyboardShortcut(.tab, modifiers: .control)
-                    .hidden()
-                    .buttonStyle(.borderless)
-                    .controlSize(.mini)
                 
                 Button(action: {selectedTab = (selectedTab + 2) % 3}) {}
                     .keyboardShortcut(.tab, modifiers: [.control, .shift])
-                    .hidden()
-                    .buttonStyle(.borderless)
-                    .controlSize(.mini)
             }
+            .hidden()
+            .buttonStyle(.borderless)
+            .controlSize(.mini)
             
             TabView(selection: $selectedTab) {
                 List(searchResults.tracks.items, id: \.id, selection: $selection) { track in
@@ -99,92 +87,45 @@ struct ContentView: View {
                     TrackView(track: track, artists: track.artists, album: track.album, artwork: Artwork(url: art))
                         .listRowSeparator(.hidden)
                         .listItemTint(.monochrome)
-                    //                        .background(focusId == track.id ? Color.secondary : Color.clear) // Highlight the focused row
                         .underline(selection == track.id)
                         .font(.title2)
-                    //                .contentShape(.)
-//                        .focusable()
-                    //                .focusable(interactions: .activate)
-//                        .focused($focusId, equals: track.id)
-                    //                .focusSection()
                         .onHover(perform: { hovering in
                             // TODO: Hover code
                         })
-                        .onMoveCommand(perform: { direction in
-                            // TODO: Move command code
-                        })
-//                        .onKeyPress(keys: [.upArrow]) { _ in
-//                            let currentIndex = searchResults.tracks.items.firstIndex(where: {$0.id == selection})!
-//                            if searchResults.tracks.items[currentIndex].id == searchResults.tracks.items.first?.id {
-////                                focusId = "search"
-//                                selection = "search"
-//                                //                                row.scrollTo(focusId, anchor: .topLeading)
-//                                return .handled
-//                            } else {
-////                                focusId = searchResults.tracks.items[currentIndex - 1].id
-//                                selection = searchResults.tracks.items[currentIndex - 1].id
-//                                //                                row.scrollTo(focusId, anchor: .topLeading)
-//                                return .handled
-//                            }
-//                        }
-//                        .onKeyPress(keys: [.downArrow]) { _ in
-//                            let currentIndex = searchResults.tracks.items.firstIndex(where: {$0.id == selection})!
-//                            if searchResults.tracks.items[currentIndex].id == searchResults.tracks.items.last?.id {
-//                                return .handled
-//                            }
-////                            focusId = searchResults.tracks.items[max(currentIndex, currentIndex + 1)].id
-//                            selection = searchResults.tracks.items[max(currentIndex, currentIndex + 1)].id
-//                            //                            row.scrollTo(focusId, anchor: .topLeading)
-//                            return .handled
-//                        }
-                        .onKeyPress(.return) {
-                            print(makeURI(trackId: selection!, type: "track"))
-                            //                            sendAppleScriptCommand(id: makeURI(trackId: focusId!, type: "track"))
-                            sendAppleScriptCommand(id: makeURI(trackId: selection!, type: "track"))
-                            print("Enter pressed on track - sending AppleScript command")
-                            return .handled
-                        }
-                        .onSubmit {
-                            sendAppleScriptCommand(id: makeURI(trackId: selection!, type: "track"))
-                            print("Submit pressed on track - sending AppleScript command")
-                        }
                         .id(track.id)
                     
                 }
                 .focusable()
-                .onChange(of: selection, { print("Selection changed: \(selection!)")})
+                .onKeyPress(.return) {
+                    print("Enter pressed on \(selection!) - sending AppleScript command")
+                    sendAppleScriptCommand(id: makeURI(trackId: selection!, type: "track"))
+                    return .handled
+                }
                 .onSubmit {
                     print("Submit pressed on track - sending AppleScript command")
-                }
-                .onKeyPress(.return) {
-                    print("Submit pressed on \(selection!) - sending AppleScript command")
-                    return .handled
+                    sendAppleScriptCommand(id: makeURI(trackId: selection!, type: "track"))
                 }
                 .tabItem {
                     Text("Tracks")
                 }
                 .tag(0)
                 
-                //                List(searchResults.artists.items, id: \.id, selection: $selection) { artist in
-                //                    let art = URL(string: artist.images.last!.url)!
-                //                    Artist(track: track, artists: track.artists, album: track.album, artwork: Artwork(url: art))
-                //                }
-                List(searchResults.tracks.items, id: \.id, selection: $selection) { track in
-                    let art = URL(string: track.album.images.last!.url)!
-                    TrackView(track: track, artists: track.artists, album: track.album, artwork: Artwork(url: art))
+                List(searchResults.artists.items, id: \.id, selection: $selectionArtist) { artist in
+                    //                    let art = URL(string: artist.images.last!.url)!
+                    //                    ArtistView(artist: artist, artwork: Artwork(url: art))
+                    ArtistView(artist: artist)
                 }
                 .tabItem {
                     Text("Artists")
                 }
                 .tag(1)
                 
-                //                List(searchResults.albums.items, id: \.id, selection: $selection) { album in
-                //                    let art = URL(string: album.images.last!.url)!
-                //                    AlbumView(artists: album.artists, album: album, artwork: Artwork(url: art))
-                //                }
-                List(searchResults.tracks.items, id: \.id, selection: $selection) { track in
-                    let art = URL(string: track.album.images.last!.url)!
-                    TrackView(track: track, artists: track.artists, album: track.album, artwork: Artwork(url: art))
+                List(searchResults.albums.items, id: \.id, selection: $selectionAlbum) { album in
+                    //                    let img: Image = album.images.last!
+                    //                    let srt: String = img.url
+                    let art = URL(string: album.images.last!.url)!
+                    //                    let art = URL(string: album.images.last!.url)
+                    AlbumView(artists: album.artists, album: album, artwork: Artwork(url: art))
                 }
                 .tabItem {
                     Text("Albums")
@@ -193,38 +134,16 @@ struct ContentView: View {
                 
             }
             
+            
+            
             if searchResults.tracks.items.isEmpty {
                 EmptyView()
             } else {
-                CurrentTrackView(
-                    track: searchResults.tracks.items.first!,
-                    artists: searchResults.tracks.items.first!.artists,
-                    album: searchResults.tracks.items.first!.album,
-                    artwork: Artwork(url: URL(string: searchResults.tracks.items.first!.album.images.last!.url)!)
-                )
+                CurrentTrackView()
                 .padding([.leading, .bottom, .trailing])
             }
             
         }
-        //        .onKeyPress { keys in
-        //            if keys.key == .tab && keys.modifiers.contains(.control) {
-        //                print("ctrl+tab combo pressed")
-        //                selectedTab = (selectedTab + 1) % 3
-        //                return .handled // Indicate that the key press has been handled
-        //            }
-        //            print("ctrl+tab combo pressed but not handled")
-        //            return .handled // Indicate that the key press has not been handled
-        //        }
-        //        .onKeyPress(.tab, action: {
-        //            selectedTab = (selectedTab + 1) % 3
-        //            return .handled
-        //        })
-        
-        //        TODO: Try this here
-        //        .onOpenURL { url in
-        //            print(url)
-        //                    Request an access token here
-        //        }
     }
     
 }

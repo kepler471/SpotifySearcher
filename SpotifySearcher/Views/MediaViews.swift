@@ -36,24 +36,15 @@ struct AlbumView: View {
 }
 
 struct ArtistView: View {
-    let artists: [Artist]
-    let artwork: Artwork
+    let artist: Artist
+//    let artwork: Artwork
 
     var body: some View {
         HStack {
-            AsyncImage(url: artwork.url)
+//            AsyncImage(url: artwork.url)
 //                .resizable()
 //                .scaledToFit()
-            HStack {
-                ForEach(artists, id: \.id) { artist in
-                    if artist.id != artists.last?.id {
-                        Link(artist.name + ",", destination: URL(string: artist.uri)!)
-                    } else {
-                        Link(artist.name, destination: URL(string: artist.uri)!)
-                    }
-                }
-                .font(.title)
-            }
+            Link(artist.name, destination: URL(string: artist.uri)!)
             Spacer()
         }
         .foregroundStyle(.secondary)
@@ -61,7 +52,7 @@ struct ArtistView: View {
 }
 
 struct TrackView: View {
-    let track: Track
+    let track: Track // TODO: Make these all Optionals
     let artists: [Artist]
     let album: Album
     let artwork: Artwork
@@ -91,21 +82,35 @@ struct TrackView: View {
     }
 }
 
+// TODO: Move some functionality here out to a class. view-model classs? or in the spotify API class?
 struct CurrentTrackView: View {
-    let track: Track
-    let artists: [Artist]
-    let album: Album
-    let artwork: Artwork
-    @State private var isSaved = false
+    @State private var currentTrack: Track?
+    @State private var isSaved: Bool = false
+    @State private var timer: Timer?
     
     var body: some View {
         HStack {
-            TrackView(track: track, artists: artists, album: album, artwork: artwork)
-            Text(isSaved ? "♥︎" : "♡").padding(.all)
-//            Spacer()
+            if let currentTrack {
+                TrackView(track: currentTrack,
+                          artists: currentTrack.artists,
+                          album: currentTrack.album,
+                          artwork: Artwork(url: URL(string: currentTrack.album.images.last!.url)!))
+                Text(isSaved ? "♥︎" : "♡").padding(.all).font(.title)
+            }
         }
         .onAppear {
-            MySpotifyAPI.shared.isSaved(ids: [track.id], type: "track") { results in
+            timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+                MySpotifyAPI.shared.GetCurrentTrack(accessToken: accessToken) { result in
+                    if let firstResult = result.item {
+                        DispatchQueue.main.async {
+                            self.currentTrack = firstResult
+                        }
+                    }
+                }
+            }
+        }
+        .onChange(of: currentTrack) {
+            MySpotifyAPI.shared.isSaved(ids: [currentTrack!.id], type: "track") { results in
                 if let firstResult = results.first {
                     DispatchQueue.main.async {
                         self.isSaved = firstResult

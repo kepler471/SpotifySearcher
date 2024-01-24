@@ -8,28 +8,25 @@
 import Foundation
 
 struct Album: Decodable, Equatable, Hashable {
-    
+    let artists: [Artist]
     let name: String
     let id: String
     let images: [Image]
     let uri: String
     
     static func == (lhs: Album, rhs: Album) -> Bool {
-        return lhs.name == rhs.name &&
-        lhs.id == rhs.id &&
-        lhs.uri == rhs.uri
+        return lhs.id == rhs.id
     }
 }
 
 struct Artist: Decodable, Equatable, Hashable {
     let name: String
     let id: String
+//    let images: [Image]
     let uri: String
     
     static func == (lhs: Artist, rhs: Artist) -> Bool {
-        return lhs.name == rhs.name &&
-        lhs.id == rhs.id &&
-        lhs.uri == rhs.uri
+        return lhs.id == rhs.id
     }
 }
 
@@ -51,6 +48,7 @@ struct Artwork: Decodable {
     let url: URL
 }
 
+// TODO: Merge all *Response structs into a top level struct Response {...}
 struct SpotifySearchResponse: Decodable {
     let tracks: SpotifyTracksResponse
     let artists: SpotifyArtistsResponse
@@ -71,6 +69,49 @@ struct SpotifySaveCheckResponse: Decodable {
     let items: [Bool]
 }
 
+struct SpotifyCurrentTrackResponse: Decodable {
+//    let device: SpotifyDevice
+//    let repeat_state: String // TODO: Can we use an enum here?
+//    let shuffle_state: Bool
+//    let context: SpotifyContext
+//    let timestamp: Int
+//    let progress_ms: Int
+//    let is_playing: Bool
+    let item: Track? // Can also be Episode but not supported yet
+//    let current_playing_type: String
+//    let actions: SpotifyActions
+}
+
+struct SpotifyDevice: Decodable {
+    let id: String?
+    let is_active: Bool
+    let is_private_session: Bool
+    let is_restricted: Bool
+    let name: String
+    let type: String
+    let volume_percent: Int?
+    let supports_volume: Bool
+}
+
+struct SpotifyContext: Decodable {
+    let type: String
+    let href: String
+//    let external_urls:
+    let uri: String
+}
+
+struct SpotifyActions: Decodable {
+    let interrupting_playback: Bool?
+    let pausing: Bool?
+    let resuming: Bool?
+    let seeking: Bool?
+    let skipping_next: Bool?
+    let skipping_prev: Bool?
+    let toggling_repeat_context: Bool?
+    let toggling_shuffle: Bool?
+    let toggling_repeat_track: Bool?
+    let transferring_playback: Bool?
+}
 
 class MySpotifyAPI {
     static let shared = MySpotifyAPI()
@@ -132,6 +173,33 @@ class MySpotifyAPI {
             
             do {
                 let decodedResponse = try JSONDecoder().decode([Bool].self, from: data) // TODO: replace [Bool]?
+                DispatchQueue.main.async {
+                    completion(decodedResponse)
+                }
+            } catch {
+                print("Failed to Save item response decode JSON: \(error)")
+            }
+        }.resume()
+    }
+    
+    func GetCurrentTrack(accessToken: String, completion: @escaping (SpotifyCurrentTrackResponse) -> Void) {
+        let url = URL(string: "\(baseUrl)/me/player/currently-playing")!
+//        print(url)
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error { // TODO: Can we remove all these repeated `= data/error`??
+                print("Error making the current playing track request: \(error)")
+                return
+            }
+
+            guard let data = data else {
+                print("No data in current playing track response")
+                return
+            }
+            
+            do {
+                let decodedResponse = try JSONDecoder().decode(SpotifyCurrentTrackResponse.self, from: data)
                 DispatchQueue.main.async {
                     completion(decodedResponse)
                 }
