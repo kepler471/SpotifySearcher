@@ -104,9 +104,9 @@
 		659B441B2B518ED000B74938 /* SpotifySearcher */ = {
 			isa = PBXGroup;
 			children = (
+				65FE456E2B61411A0050C3C9 /* Model */,
 				65A5D0C12B5321AC00FA102C /* Info.plist */,
 				659B441C2B518ED000B74938 /* SpotifySearcherApp.swift */,
-				65F059B72B5D4DA900B5B6D7 /* Spotify.swift */,
 				65F059BC2B5EBECB00B5B6D7 /* Views */,
 				659B44202B518ED100B74938 /* Assets.xcassets */,
 				659B44252B518ED100B74938 /* SpotifySearcher.entitlements */,
@@ -147,6 +147,14 @@
 				65F059BD2B5EBEF800B5B6D7 /* MediaViews.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		65FE456E2B61411A0050C3C9 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				65F059B72B5D4DA900B5B6D7 /* Spotify.swift */,
+			);
+			path = Model;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

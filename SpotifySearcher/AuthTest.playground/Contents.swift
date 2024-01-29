@@ -4,34 +4,33 @@ import Cocoa
 import Foundation
 
 
-func generateCodeVerifier() -> String {
-    var bytes = [UInt8](repeating: 0, count: 32)
-    _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
-    return Data(bytes).base64EncodedString()
-        .replacingOccurrences(of: "+", with: "-")
-        .replacingOccurrences(of: "/", with: "_")
-        .replacingOccurrences(of: "=", with: "")
-}
-
-
-
-func generateCodeChallenge(from verifier: String) -> String {
-    guard let data = verifier.data(using: .utf8) else { return "" }
-    var buffer = [UInt8](repeating: 0, count: Int(CC_SHA256_DIGEST_LENGTH))
-    data.withUnsafeBytes {
-        _ = CC_SHA256($0.baseAddress, CC_LONG(data.count), &buffer)
-    }
-    let hash = Data(buffer)
-    return hash.base64EncodedString()
-        .replacingOccurrences(of: "+", with: "-")
-        .replacingOccurrences(of: "/", with: "_")
-        .replacingOccurrences(of: "=", with: "")
-}
+//func generateCodeVerifier() -> String {
+//    var bytes = [UInt8](repeating: 0, count: 32)
+//    _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
+//    return Data(bytes).base64EncodedString()
+//        .replacingOccurrences(of: "+", with: "-")
+//        .replacingOccurrences(of: "/", with: "_")
+//        .replacingOccurrences(of: "=", with: "")
+//}
+//
+//
+//
+//func generateCodeChallenge(from verifier: String) -> String {
+//    guard let data = verifier.data(using: .utf8) else { return "" }
+//    var buffer = [UInt8](repeating: 0, count: Int(CC_SHA256_DIGEST_LENGTH))
+//    data.withUnsafeBytes {
+//        _ = CC_SHA256($0.baseAddress, CC_LONG(data.count), &buffer)
+//    }
+//    let hash = Data(buffer)
+//    return hash.base64EncodedString()
+//        .replacingOccurrences(of: "+", with: "-")
+//        .replacingOccurrences(of: "/", with: "_")
+//        .replacingOccurrences(of: "=", with: "")
+//}
 
 print("ayo BING BONG")
 
 var clientID: String = "69998477e18a484bb6402cf614942a47"
-
 var clientSecret: String = "93a39b3f0eb64b99af378929a5451c41"
 
 var accessToken: String = "BQC2dHIBPY8I3_VvD9tXN6bh34QbxSmXfN1nIKIYKxOy1BQt5qy73AwCIrMHjGJ_qptu4iXk9xVeJrjGZ3nsPIghaa3raCynbxnCEYL57GMnYGY2bfAyCZ6bfLGGfZevwlOdEw31BcB5KlsmgvNK3_pcJKeJ5U1VQI-IMXbqFolVRGtgOFv9yKV97VfqSIo3PiPe45BMqoxHyzhy"
@@ -46,7 +45,6 @@ let REQUESTED_SCOPES = [
     "user-modify-playback-state",
     "user-library-modify",
     "user-library-read",
-    
 ].joined(separator: " ")
 
 //let authorizationURL = "https://accounts.spotify.com/authorize?client_id=\(clientID)&response_type=code&redirect_uri=\(redirect_uri)&scope=\(REQUESTED_SCOPES)"
@@ -68,11 +66,11 @@ components.queryItems = [
 components.url?.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
 //print(components)
 
-//if let url = components.url {
-//    // Open URL in browser
+if let url = components.url {
+    // Open URL in browser
 //    NSWorkspace.shared.open(URL(string: authorizationURL)!)
-////    NSWorkspace.shared.open(url)
-//}
+    NSWorkspace.shared.open(url)
+}
 
 
 let code = "AQBMJBy4Y7T6Mi6ZpiecYzhJpz7nf7wBxnJZSaj-dhFM_8OAn1UzqXhpWiducKRKzHMeILY77zrY2BZxrWVZBbVWbymOCKDO0BxI5gFBLqJydiaG2mAi4327SwPG1wM1nMWI1c-9K0s1JphNvGOLh1NVQqY7Y9VrE8rjXkLlbYbulit0o5ei7w2Z4gZhsc-m1gO2R0p2nbXmZDhYdXFqtxyBCsKEKpdZy7YwWEJxrJ2Ozj38vtpxHFH5zruw7oCjmHB1a9fTAq3hXFMKxK093g2YgrpH7HKDn6iTnSmmi7kFRDEJ9rIulBFpK6ZW_D8PFiVTo7Tdki1YPM-JKJIL_y2gxIGXnsc"
@@ -147,20 +145,6 @@ func exchangeCode(code: String, clientId: String, clientSecret: String, redirect
         }
     }.resume()
 }
-
-
-//exchangeCode(code: code, clientId: clientID, clientSecret: clientSecret, redirectUri: redirectURI) { result in
-//    switch result {
-//    case .success(let authResponse):
-//        print("Access Token: \(authResponse.accessToken)")
-//        print("Refresh Token: \(authResponse.refreshToken)")
-//        print(result)
-//    case .failure(let error):
-//        print("Error: \(error.localizedDescription)")
-//        print(result)
-//    }
-//}
-
 
 //Access Token: BQC5uzt9yLpYkT_lBmTYZXXTbrE9vbfqH6fkG6EyAkAGwz0OdK9Q-iqPMvVGpUnVc4AvQqa4ja_eFhgnQyuxpNbzJjpBKS5rKQ5WKweWEyV6KPayQeI2kT39fNYHFMmjhYwCjbyKZCwFynsH5QFkvQdIXR1u2hgplt825HEywLeg-DNf4ItmRnpQvZ9qSncDt2Nhwf1_Rjq3zOhU
 //Refresh Token: AQAE5jgBvR80ID05sOxin660JIMHQmQWUfLDp48JVkKmryQF8RExPESmrcsAndmdxBnLmboudqk7Gi5R_YBGv96-5v5d8TQInaDpamAmSrTxSm3AjRXzHGXC7nyS2Qn0YQk
