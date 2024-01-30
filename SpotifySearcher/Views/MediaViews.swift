@@ -8,6 +8,19 @@
 import Foundation
 import SwiftUI
 
+struct HoverUnderlineModifier: ViewModifier {
+    @State private var isHovering: Bool = false
+
+    func body(content: Content) -> some View {
+        content
+            .underline(isHovering)
+            .onHover { hovering in
+                isHovering = hovering
+            }
+    }
+}
+
+
 struct AlbumView: View {
     let artists: [Artist]
     let album: Album
@@ -19,12 +32,15 @@ struct AlbumView: View {
             VStack(alignment: .leading) {
                 Link(album.name, destination: URL(string: album.uri)!)
                     .font(.title)
+                    .modifier(HoverUnderlineModifier())
                 HStack {
                     ForEach(artists, id: \.id) { artist in
                         if artist.id != artists.last?.id {
                             Link(artist.name + ",", destination: URL(string: artist.uri)!)
+                                .modifier(HoverUnderlineModifier())
                         } else {
                             Link(artist.name, destination: URL(string: artist.uri)!)
+                                .modifier(HoverUnderlineModifier())
                         }
                     }
                 }
@@ -45,6 +61,7 @@ struct ArtistView: View {
 //                .resizable()
 //                .scaledToFit()
             Link(artist.name, destination: URL(string: artist.uri)!)
+                .modifier(HoverUnderlineModifier())
             Spacer()
         }
         .foregroundStyle(.secondary)
@@ -62,108 +79,110 @@ struct TrackView: View {
             VStack(alignment: .leading) {
                 Link(track.name, destination: URL(string: track.uri)!)
                     .font(.title)
+                    .modifier(HoverUnderlineModifier())
                 HStack {
                     ForEach(track.artists, id: \.id) { artist in
                         if artist.id != track.artists.last?.id {
                             Link(artist.name + ",", destination: URL(string: artist.uri)!)
+                                .modifier(HoverUnderlineModifier())
                         } else {
                             Link(artist.name, destination: URL(string: artist.uri)!)
+                                .modifier(HoverUnderlineModifier())
                         }
                     }
                 }
             }
             Spacer()
             Link(track.album.name, destination: URL(string: track.album.uri)!)
+                .modifier(HoverUnderlineModifier())
         }
         .foregroundStyle(.secondary)
     }
 }
 
-// TODO: Move some functionality here out to a class. view-model classs? or in the spotify API class?
+/// Assuming a track is always playing (so we do not need to create a blank CurrentTrackView yet:
+/// - how do we get it to update to whether the state is playing or paused?
+/// - how do we get it to update to the currently playing track?
 struct CurrentTrackView: View {
-    @Environment(Auth.self) private var auth
-    @State private var currentTrack: Track?
-    @State private var isSaved: Bool = false
-    @State private var timer: Timer?
-    @State private var isPlaying: Bool = false
-    
+    @ObservedObject var player: Player
+
     var body: some View {
         HStack {
-            if let currentTrack {
-                TrackView(track: currentTrack)
+            if let track = player.currentTrack {
                 
-                Button {
-                    print("click like")
-                    if isSaved {
-                        MySpotifyAPI.shared.removeTracksFromLibrary(accessToken: auth.accessToken, trackIds: [currentTrack.id]) { error in
-                            if let error {
-                                print("Error trying to remove track from library: \(error)")
-                            } else {
-                                print("Tracks successfully removed from the library")
-                                isSaved = false
-                            }
-                        }
-                    } else {
-                        MySpotifyAPI.shared.saveTracksToLibrary(accessToken: auth.accessToken, trackIds: [currentTrack.id]) { error in
-                            if let error {
-                                print("Error trying to save track to library: \(error)")
-                            } else {
-                                print("Tracks successfully saved to the library")
-                                isSaved = true
-                            }
-                        }
-                    }
+                TrackView(track: track)
+                
+                LikeButtonView(track: track)
+        
+                PlayPauseButtonView(player: player)
+                
+            } else {
+                
+                Image(systemName: "music.note.list").frame(width: 64, height: 64).font(.title)
+                
+                Spacer()
+                
+                Text("----------------").font(.title)
 
-                } label: {
-                    isSaved ? Image(systemName: "heart.fill") : Image(systemName: "heart")
-                }
-                .keyboardShortcut(KeyEquivalent("s"), modifiers: .command)
-
-                Button {
-                    print("click play/pause")
-                    if isPlaying {
-                        // TODO: Error wrap these 2 lines so we don't swap the button if the play/pause fails
-                        MySpotifyAPI.shared.pausePlayback(accessToken: auth.accessToken)
-                        isPlaying = false
-                    } else {
-                        // TODO: Error wrap these 2 lines so we don't swap the button if the play/pause fails
-                        MySpotifyAPI.shared.startResumePlayback(accessToken: auth.accessToken)
-                        isPlaying = true
-                    }
-                } label: {
-                    isPlaying ? Image(systemName: "pause.fill") : Image(systemName: "play.fill")
-                }
-
+                Spacer()
             }
+        }
+    }
+}
+
+struct LikeButtonView: View {
+    @Environment(Auth.self) private var auth
+    @State var isSaved: Bool = false
+    @State var track: Track
+    
+    var body: some View {
+        Button {
+            print("click like")
+            if isSaved {
+                MySpotifyAPI.shared.removeTracksFromLibrary(accessToken: auth.accessToken, trackIds: [track.id]) { error in
+                    if let error {
+                        print("Error trying to remove track from library: \(error)")
+                    } else {
+                        print("Tracks successfully removed from the library")
+                    }
+                }
+            } else {
+                MySpotifyAPI.shared.saveTracksToLibrary(accessToken: auth.accessToken, trackIds: [track.id]) { error in
+                    if let error {
+                        print("Error trying to save track to library: \(error)")
+                    } else {
+                        print("Tracks successfully saved to the library")
+                    }
+                }
+            }
+            isSaved.toggle()
+        } label: {
+            isSaved ? Image(systemName: "heart.fill") : Image(systemName: "heart")
         }
         .onAppear {
-            timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-                MySpotifyAPI.shared.getCurrentTrack(accessToken: auth.accessToken) { result in
-                    if let firstResult = result.item {
-                        DispatchQueue.main.async {
-                            self.currentTrack = firstResult
-                            self.isPlaying = result.is_playing
-                        }
-                        
-                        MySpotifyAPI.shared.checkTracksSavedInLibrary(accessToken: auth.accessToken, trackIds: [firstResult.id]) { savedStatus, error in
-                            if let error {
-                                print("Error checking if track is saved in Library: \(error)")
-                            } else if let savedStatus {
-                                isSaved = savedStatus.first!
-                            }
-                        }
-                    }
+            MySpotifyAPI.shared.checkSaved(accessToken: auth.accessToken, type: "track", Ids: [track.id]) { result, error  in
+                print()
+                if let error {
+                    print("Error checking if track is saved in Library: \(error)")
+                } else if let result {
+                    isSaved = result.first!
                 }
             }
         }
-        .onChange(of: currentTrack) {
-            MySpotifyAPI.shared.isSaved(accessToken: auth.accessToken, ids: [currentTrack!.id], type: "track") { results in
-                if let firstResult = results.first {
-                    DispatchQueue.main.async {
-                        self.isSaved = firstResult
-                    }
-                }
-            }
+        .keyboardShortcut("s")
+    }
+}
+
+struct PlayPauseButtonView: View {
+    @ObservedObject var player: Player
+    
+    var body: some View {
+        Button {
+            /// The timer checks and updates `isPlaying`. If this button attempts to update `isPlaying`, there can be some crossover in the time it takes to pause/play, manually setting `isPlaying` in the Button, and the timer, causing the pause/play command to not do anything. For now lets just let the timer set isPlaying, but try to come up with a better way to manage this.
+            print("click play/pause")
+            player.togglePlaying()
+        } label: {
+            player.isPlaying ? Image(systemName: "pause.fill") : Image(systemName: "play.fill")
         }
     }
 }

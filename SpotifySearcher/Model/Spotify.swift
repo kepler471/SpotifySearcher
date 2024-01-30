@@ -5,6 +5,14 @@
 //  Created by Stelios Georgiou on 21/01/2024.
 //
 
+//            let blank1 = Track(name: "Rap Protester", id: "6CCIqr8xROr3jTnXf4GI3B", album: Album(artists: [Artist(name: "Le Char", id: "09hVIj6vWgoCDtT03h8ZCa", uri: "artist:URI")], name: "Fake Album Name", id: "1p12OAWwudgMqfMzjMvl2a", images: [SpotifyImage(url: "https://i.scdn.co/image/ab67616d00004851f38c6b37a21334e22005b1f7", height: 64, width: 64)], uri: "spotify:album:1p12OAWwudgMqfMzjMvl2a"), artists: [Artist(name: "Le Char", id: "09hVIj6vWgoCDtT03h8ZCa", uri: "spotify:artist:09hVIj6vWgoCDtT03h8ZCa")], uri: "spotify:track:6CCIqr8xROr3jTnXf4GI3B", preview_url: "https://p.scdn.co/mp3-preview/8ca060b3fa2f75ce0f1889f38fdc8562a763b801?cid=f050ee486c4f4ceeb53fd54ab2d3cedb")
+//
+//            let blank2 = Track(name: "Butter", id: "758mQT4zzlvBhy9PvNePwC", album: Album(artists: [Artist(name: "Le Char", id: "09hVIj6vWgoCDtT03h8ZCa", uri: "artist:URI")], name: "Fake Album Name", id: "1p12OAWwudgMqfMzjMvl2a", images: [SpotifyImage(url: "https://i.scdn.co/image/ab67616d00004851f38c6b37a21334e22005b1f7", height: 64, width: 64)], uri: "spotify:album:1p12OAWwudgMqfMzjMvl2a"), artists: [Artist(name: "Le Char", id: "09hVIj6vWgoCDtT03h8ZCa", uri: "spotify:artist:09hVIj6vWgoCDtT03h8ZCa")], uri: "spotify:track:758mQT4zzlvBhy9PvNePwC", preview_url: "https://p.scdn.co/mp3-preview/8ca060b3fa2f75ce0f1889f38fdc8562a763b801?cid=f050ee486c4f4ceeb53fd54ab2d3cedb")
+//
+//            let blank3 = Track(name: "Vibes and Stuff", id: "4MdEYuoGhG2RTG3erOiu2H", album: Album(artists: [Artist(name: "Le Char", id: "09hVIj6vWgoCDtT03h8ZCa", uri: "artist:URI")], name: "Fake Album Name", id: "1p12OAWwudgMqfMzjMvl2a", images: [SpotifyImage(url: "https://i.scdn.co/image/ab67616d00004851f38c6b37a21334e22005b1f7", height: 64, width: 64)], uri: "spotify:album:1p12OAWwudgMqfMzjMvl2a"), artists: [Artist(name: "Le Char", id: "09hVIj6vWgoCDtT03h8ZCa", uri: "spotify:artist:09hVIj6vWgoCDtT03h8ZCa")], uri: "spotify:track:4MdEYuoGhG2RTG3erOiu2H", preview_url: "https://p.scdn.co/mp3-preview/8ca060b3fa2f75ce0f1889f38fdc8562a763b801?cid=f050ee486c4f4ceeb53fd54ab2d3cedb")
+//
+//            let blanks = [blank1, blank2, blank3]
+
 import Foundation
 import Cocoa
 
@@ -31,12 +39,13 @@ struct Artist: Decodable, Equatable, Hashable {
     }
 }
 
-struct Track: Decodable, Equatable, Hashable {
+struct Track: Decodable, Equatable, Hashable, Identifiable {
     let name: String
     let id: String
     let album: Album
     let artists: [Artist]
     let uri: String
+    let preview_url: String?
 }
 
 struct SpotifyImage: Decodable, Hashable {
@@ -119,71 +128,49 @@ class MySpotifyAPI {
     private let baseUrl = "https://api.spotify.com/v1"
 
     func searchSpotify(accessToken: String, query: String, completion: @escaping (SpotifySearchResponse) -> Void) {
+        print("<<<API>>> searchSpotify(\(query))")
         guard let url = URL(
             string: "\(baseUrl)/search?q=\(query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")" +
             "&type=track%2Cartist%2Calbum&limit=5"
         ) else {
-            print("Invalid URL")
+            print("Search error: Invalid URL")
             return
         }
         
-        print(url)
         var request = URLRequest(url: url)
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
 
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
-                print("Error making the request: \(error)")
+                print("Error making the search request: \(error)")
                 return
             }
 
             guard let data = data else {
-                print("No data in response")
+                print("No data in search response")
                 return
             }
 
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                if let getError = response as? HTTPURLResponse {
+                    print("Search response error code: \(getError.statusCode)")
+                }
+                return
+            }
+            
             do {
                 let decodedResponse = try JSONDecoder().decode(SpotifySearchResponse.self, from: data)
                 DispatchQueue.main.async {
                     completion(decodedResponse)
                 }
             } catch {
-                print("Failed to decode JSON: \(error)")
-            }
-        }.resume()
-    }
-    
-    func isSaved(accessToken: String, ids: [String], type: String, completion: @escaping ([Bool]) -> Void) {
-///     Checks whether tracks or albums are saved
-        let url = URL(string: "\(baseUrl)/me/\(type)s/contains?ids=\(ids.joined(separator: ","))")!
-        print(url)
-        var request = URLRequest(url: url)
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("Error making the Save check request: \(error)")
-                return
-            }
-
-            guard let data = data else {
-                print("No data in Save item response")
-                return
-            }
-            
-            print(String(data: data, encoding: .utf8) ?? "Invalid JSON")
-            
-            do {
-                let decodedResponse = try JSONDecoder().decode([Bool].self, from: data) // TODO: replace [Bool]?
-                DispatchQueue.main.async {
-                    completion(decodedResponse)
-                }
-            } catch {
-                print("Failed to Save item response decode JSON: \(error)")
+                print("Failed to decode search JSON: \(error)")
             }
         }.resume()
     }
     
     func getCurrentTrack(accessToken: String, completion: @escaping (SpotifyCurrentTrackResponse) -> Void) {
+        print("<<<API>>> getCurrentTrack()")
         let url = URL(string: "\(baseUrl)/me/player/currently-playing")!
 //        print(url)
         var request = URLRequest(url: url)
@@ -211,6 +198,7 @@ class MySpotifyAPI {
     }
     
     func startResumePlayback(accessToken: String) {
+        print("<<<API>>> startResumePlayback()")
         let url = URL(string: "https://api.spotify.com/v1/me/player/play")!
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
@@ -232,6 +220,7 @@ class MySpotifyAPI {
     }
     
     func pausePlayback(accessToken: String) {
+        print("<<<API>>> pausePlayback()")
         let url = URL(string: "https://api.spotify.com/v1/me/player/pause")!
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
@@ -252,9 +241,10 @@ class MySpotifyAPI {
         task.resume()
     }
     
-    func checkTracksSavedInLibrary(accessToken: String, trackIds: [String], completion: @escaping ([Bool]?, Error?) -> Void) {
-        let ids = trackIds.joined(separator: ",")
-        let url = URL(string: "https://api.spotify.com/v1/me/tracks/contains?ids=\(ids)")!
+    func checkSaved(accessToken: String, type: String, Ids: [String], completion: @escaping ([Bool]?, Error?) -> Void) {
+        print("<<<API>>> checkTracksSavedInLibrary(\(Ids))")
+        let ids = Ids.joined(separator: ",")
+        let url = URL(string: "https://api.spotify.com/v1/me/\(type)s/contains?ids=\(ids)")!
         
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -268,6 +258,9 @@ class MySpotifyAPI {
             }
             
             guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                if let getError = response as? HTTPURLResponse {
+                    print("Error code: \(getError.statusCode)")
+                }
                 completion(nil, NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to check if tracks are saved in the library"]))
                 return
             }
@@ -286,6 +279,7 @@ class MySpotifyAPI {
     }
     
     func saveTracksToLibrary(accessToken: String, trackIds: [String], completion: @escaping (Error?) -> Void) {
+        print("<<<API>>> saveTracksToLibrary(\(trackIds))")
         let ids = trackIds.joined(separator: ",")
         let url = URL(string: "https://api.spotify.com/v1/me/tracks?ids=\(ids)")!
         
@@ -311,6 +305,7 @@ class MySpotifyAPI {
     }
     
     func removeTracksFromLibrary(accessToken: String, trackIds: [String], completion: @escaping (Error?) -> Void) {
+        print("<<<API>>> removeTracksFromLibrary(\(trackIds))")
         let ids = trackIds.joined(separator: ",")
         let url = URL(string: "https://api.spotify.com/v1/me/tracks?ids=\(ids)")!
         
@@ -334,55 +329,4 @@ class MySpotifyAPI {
         }
         task.resume()
     }
-}
-
-@Observable class Auth {
-    let clientID: String = "69998477e18a484bb6402cf614942a47"
-    let clientSecret: String = "93a39b3f0eb64b99af378929a5451c41"
-    private let REQUESTED_SCOPES = [
-        "user-read-currently-playing",
-        "user-read-playback-state",
-        "user-modify-playback-state",
-        "user-library-modify",
-        "user-library-read",
-    ].joined(separator: " ")
-    let redirectURI = "spotify-api-example-app://login-callback"
-    
-    var code: String = ""
-    
-    var accessToken: String = "BQBOTiXPq1NM0Uytm3d-UOsyh_KEugNjJoVUG5qSbSnl80j2anwUdEd7B0NM0q7d-Fix8--f6Og7cSXachcEghoiCuplIRscVKNVW_9ExViDDjqycTMdNRc4alhqUBOyqZ9f7x8IYLUs8LPyXijnrnzBpsgj9VA8AT1ac0DVfnehTLvcfcynNIGmrMb2aS5vawUTrQIeFln_cfKx"
-    
-    var refreshToken: String = "AQAE5jgBvR80ID05sOxin660JIMHQmQWUfLDp48JVkKmryQF8RExPESmrcsAndmdxBnLmboudqk7Gi5R_YBGv96-5v5d8TQInaDpamAmSrTxSm3AjRXzHGXC7nyS2Qn0YQk"
-    
-    init() {
-        
-        var components = URLComponents(string: "https://accounts.spotify.com/authorize")!
-
-        // TODO: Also add a state query item
-        components.queryItems = [
-            URLQueryItem(name: "response_type", value: "code"),
-            URLQueryItem(name: "client_id", value: clientID),
-            URLQueryItem(name: "scope", value: REQUESTED_SCOPES),
-            //    URLQueryItem(name: "redirect_uri", value: "http://localhost:8081/callback")
-            URLQueryItem(name: "redirect_uri", value: redirectURI)
-        ]
-
-        components.url?.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
-        
-        if let url = components.url {
-            // Open URL in browser
-//            NSWorkspace.shared.open(URL(string: authorizationURL)!)
-            NSWorkspace.shared.open(url)
-        }
-    }
-}
-
-class Session: ObservableObject {
-    @Published private var currentTrack: Track?
-    @Published private var isSaved: Bool = false
-    @Published private var timer: Timer?
-    @Published private var isPlaying: Bool = false
-    let clientID: String = "69998477e18a484bb6402cf614942a47"
-    let clientSecret: String = "93a39b3f0eb64b99af378929a5451c41"
-    
 }
