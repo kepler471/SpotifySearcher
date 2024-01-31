@@ -5,7 +5,7 @@
 //  Created by Stelios Georgiou on 21/01/2024.
 //
 
-//            let blank1 = Track(name: "Rap Protester", id: "6CCIqr8xROr3jTnXf4GI3B", album: Album(artists: [Artist(name: "Le Char", id: "09hVIj6vWgoCDtT03h8ZCa", uri: "artist:URI")], name: "Fake Album Name", id: "1p12OAWwudgMqfMzjMvl2a", images: [SpotifyImage(url: "https://i.scdn.co/image/ab67616d00004851f38c6b37a21334e22005b1f7", height: 64, width: 64)], uri: "spotify:album:1p12OAWwudgMqfMzjMvl2a"), artists: [Artist(name: "Le Char", id: "09hVIj6vWgoCDtT03h8ZCa", uri: "spotify:artist:09hVIj6vWgoCDtT03h8ZCa")], uri: "spotify:track:6CCIqr8xROr3jTnXf4GI3B", preview_url: "https://p.scdn.co/mp3-preview/8ca060b3fa2f75ce0f1889f38fdc8562a763b801?cid=f050ee486c4f4ceeb53fd54ab2d3cedb")
+            let blank1 = Track(name: "Rap Protester", id: "6CCIqr8xROr3jTnXf4GI3B", album: Album(artists: [Artist(name: "Le Char", id: "09hVIj6vWgoCDtT03h8ZCa", uri: "artist:URI")], name: "Fake Album Name", id: "1p12OAWwudgMqfMzjMvl2a", images: [SpotifyImage(url: "https://i.scdn.co/image/ab67616d00004851f38c6b37a21334e22005b1f7", height: 64, width: 64)], uri: "spotify:album:1p12OAWwudgMqfMzjMvl2a"), artists: [Artist(name: "Le Char", id: "09hVIj6vWgoCDtT03h8ZCa", uri: "spotify:artist:09hVIj6vWgoCDtT03h8ZCa")], uri: "spotify:track:6CCIqr8xROr3jTnXf4GI3B", preview_url: "https://p.scdn.co/mp3-preview/8ca060b3fa2f75ce0f1889f38fdc8562a763b801?cid=f050ee486c4f4ceeb53fd54ab2d3cedb")
 //
 //            let blank2 = Track(name: "Butter", id: "758mQT4zzlvBhy9PvNePwC", album: Album(artists: [Artist(name: "Le Char", id: "09hVIj6vWgoCDtT03h8ZCa", uri: "artist:URI")], name: "Fake Album Name", id: "1p12OAWwudgMqfMzjMvl2a", images: [SpotifyImage(url: "https://i.scdn.co/image/ab67616d00004851f38c6b37a21334e22005b1f7", height: 64, width: 64)], uri: "spotify:album:1p12OAWwudgMqfMzjMvl2a"), artists: [Artist(name: "Le Char", id: "09hVIj6vWgoCDtT03h8ZCa", uri: "spotify:artist:09hVIj6vWgoCDtT03h8ZCa")], uri: "spotify:track:758mQT4zzlvBhy9PvNePwC", preview_url: "https://p.scdn.co/mp3-preview/8ca060b3fa2f75ce0f1889f38fdc8562a763b801?cid=f050ee486c4f4ceeb53fd54ab2d3cedb")
 //
@@ -197,49 +197,68 @@ class MySpotifyAPI {
         }.resume()
     }
     
-    func startResumePlayback(accessToken: String) {
+    func startResumePlayback(accessToken: String, uris: [URL]? = nil, contextUri: URL? = nil, completion: @escaping (Result<Void, Error>) -> Void) {
         print("<<<API>>> startResumePlayback()")
         let url = URL(string: "https://api.spotify.com/v1/me/player/play")!
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
         request.addValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        var body: [String: Any] = [:]
+        if let uris {
+            body["uris"] = uris.map({ url in
+                url.absoluteString
+            })
+        } else if let contextUri = contextUri {
+            body["context_uri"] = contextUri
+        }
+
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: body, options: [])
+            request.httpBody = jsonData
+        } catch {
+            completion(.failure(error))
+            return
+        }
 
         let session = URLSession.shared
         let task = session.dataTask(with: request) { data, response, error in
             if let error = error {
-                print("Error starting playback: \(error)")
+                completion(.failure(error))
                 return
             }
-            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 204 {
-                print("Playback started/resumed successfully")
-            } else {
-                print("Failed to start/resume playback")
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 204 else {
+                completion(.failure(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to start/resume playback"])))
+                return
             }
+            completion(.success(()))
         }
         task.resume()
     }
     
-    func pausePlayback(accessToken: String) {
+    func pausePlayback(accessToken: String, completion: @escaping (Result<Void, Error>) -> Void) {
         print("<<<API>>> pausePlayback()")
         let url = URL(string: "https://api.spotify.com/v1/me/player/pause")!
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
         request.addValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-
+        
         let session = URLSession.shared
         let task = session.dataTask(with: request) { data, response, error in
             if let error = error {
-                print("Error pausing playback: \(error)")
+                completion(.failure(error))
                 return
             }
-            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 204 {
-                print("Playback paused successfully")
-            } else {
-                print("Failed to pause playback")
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 204 else {
+                completion(.failure(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to pause playback"])))
+                return
             }
+            completion(.success(()))
         }
         task.resume()
     }
+
     
     func checkSaved(accessToken: String, type: String, Ids: [String], completion: @escaping ([Bool]?, Error?) -> Void) {
         print("<<<API>>> checkTracksSavedInLibrary(\(Ids))")
@@ -329,4 +348,5 @@ class MySpotifyAPI {
         }
         task.resume()
     }
+
 }

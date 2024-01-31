@@ -9,8 +9,7 @@ import Foundation
 import Cocoa
 import Security
 
-@available(macOS 14.0, *)
-@Observable class Auth {
+class Auth: ObservableObject {
     
     let clientID: String = "69998477e18a484bb6402cf614942a47"
     
@@ -28,7 +27,7 @@ import Security
     
     var code: String = ""
     
-    var accessToken: String = ""
+    @Published var accessToken: String = ""
     
     var refreshToken: String = ""
     
@@ -37,14 +36,16 @@ import Security
     var timer: Timer?
     
     init() {
-        timer = Timer.scheduledTimer(withTimeInterval: TimeInterval(expiresIn), repeats: true) { [self] _ in
-            refreshTheToken() { [self] result in
-                switch result {
-                case .success(let refreshResponse):
-                    print("Scheduled Refresh successful, setting auth.accessToken")
-                    accessToken = refreshResponse.accessToken
-                case .failure(let error):
-                    print("Refresh error, \(error)")
+        DispatchQueue.main.async { [self] in
+            timer = Timer.scheduledTimer(withTimeInterval: TimeInterval(expiresIn), repeats: true) { [self] _ in
+                refreshTheToken() { [self] result in
+                    switch result {
+                    case .success(let refreshResponse):
+                        print("Scheduled Refresh successful, setting auth.accessToken")
+                        accessToken = refreshResponse.accessToken
+                    case .failure(let error):
+                        print("Refresh error, \(error)")
+                    }
                 }
             }
         }
@@ -53,14 +54,16 @@ import Security
             /// TODO: Can we store the expiresIn alongside the token?
             /// Then we can check if we actually need to refresh or not
             print("Retrieved token from Keychain")
-            refreshToken = token
-            refreshTheToken() { [self] result in
-                switch result {
-                case .success(let refreshResponse):
-                    print("App Init Refresh successful, setting auth.accessToken")
-                    accessToken = refreshResponse.accessToken
-                case .failure(let error):
-                    print("Refresh error, \(error)")
+            DispatchQueue.main.async { [self] in
+                refreshToken = token
+                refreshTheToken() { [self] result in
+                    switch result {
+                    case .success(let refreshResponse):
+                        print("App Init Refresh successful, setting auth.accessToken")
+                        accessToken = refreshResponse.accessToken
+                    case .failure(let error):
+                        print("Refresh error, \(error)")
+                    }
                 }
             }
             

@@ -6,28 +6,29 @@
 //
 
 import SwiftUI
-import CommonCrypto
-import Cocoa
-
+import HotKey
 
 @main
 struct SpotifySearcherApp: App {
-    @State private var auth = Auth()
-    @StateObject private var player = Player()
+    @StateObject var auth = Auth()
+    @StateObject var player = Player()
+//    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
+//    let hotkey = HotKey(key: .f8, modifiers: [.command])
+
     var body: some Scene {
-        WindowGroup {
-            //        MenuBarExtra("SpotifySearcher", systemImage: "music.note.list") {
-            ContentView()
-                .environment(auth)
+        WindowGroup() {
+            ContentView() // This could be some basic placeholder window, or hidden?
+                .environmentObject(auth)
                 .environmentObject(player)
                 .onAppear {
                     player.auth = auth
+//                    hotkey.keyDownHandler = { print("button pressed") }
                 }
                 .onOpenURL { url in // TODO: Move within ContentView
                     print("Auth URL opened, redirect received")
                     print(url)
-                    
+                    // TODO: remove from this scope
                     if let code = auth.handleRedirectURL(url: url) {
                         auth.exchangeCode(code: code, clientId: auth.clientID, clientSecret: auth.clientSecret, redirectUri: auth.redirectURI) { result in
                             switch result {
@@ -55,7 +56,14 @@ struct SpotifySearcherApp: App {
                     }
                 }
         }
-//        }.menuBarExtraStyle(.window)
+        
+        MenuBarExtra("SpotifySearcher", systemImage: "music.note.list") {
+            ContentView()
+                .environmentObject(auth)
+                .environmentObject(player)
+                .onAppear { player.auth = auth }
+                .frame(width: 600, height: 600)
+        }
+        .menuBarExtraStyle(.window)
     }
 }
-

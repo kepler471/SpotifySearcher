@@ -48,6 +48,9 @@ struct AlbumView: View {
             Spacer()
         }
         .foregroundStyle(.secondary)
+        .listRowSeparator(.hidden)
+        .listItemTint(.monochrome)
+        .font(.title2)
     }
 }
 
@@ -65,6 +68,9 @@ struct ArtistView: View {
             Spacer()
         }
         .foregroundStyle(.secondary)
+        .listRowSeparator(.hidden)
+        .listItemTint(.monochrome)
+        .font(.title2)
     }
 }
 
@@ -97,6 +103,9 @@ struct TrackView: View {
                 .modifier(HoverUnderlineModifier())
         }
         .foregroundStyle(.secondary)
+        .listRowSeparator(.hidden)
+        .listItemTint(.monochrome)
+        .font(.title2)
     }
 }
 
@@ -104,7 +113,7 @@ struct TrackView: View {
 /// - how do we get it to update to whether the state is playing or paused?
 /// - how do we get it to update to the currently playing track?
 struct CurrentTrackView: View {
-    @ObservedObject var player: Player
+    @EnvironmentObject var player: Player
 
     var body: some View {
         HStack {
@@ -112,9 +121,9 @@ struct CurrentTrackView: View {
                 
                 TrackView(track: track)
                 
-                LikeButtonView(track: track)
+                LikeButtonView()
         
-                PlayPauseButtonView(player: player)
+                PlayPauseButtonView()
                 
             } else {
                 
@@ -131,15 +140,18 @@ struct CurrentTrackView: View {
 }
 
 struct LikeButtonView: View {
-    @Environment(Auth.self) private var auth
+    @EnvironmentObject var auth: Auth
+    @EnvironmentObject var player: Player
     @State var isSaved: Bool = false
-    @State var track: Track
+//    @State var track: Track
     
     var body: some View {
+        
         Button {
             print("click like")
+            
             if isSaved {
-                MySpotifyAPI.shared.removeTracksFromLibrary(accessToken: auth.accessToken, trackIds: [track.id]) { error in
+                MySpotifyAPI.shared.removeTracksFromLibrary(accessToken: auth.accessToken, trackIds: [player.currentTrack!.id]) { error in
                     if let error {
                         print("Error trying to remove track from library: \(error)")
                     } else {
@@ -147,7 +159,7 @@ struct LikeButtonView: View {
                     }
                 }
             } else {
-                MySpotifyAPI.shared.saveTracksToLibrary(accessToken: auth.accessToken, trackIds: [track.id]) { error in
+                MySpotifyAPI.shared.saveTracksToLibrary(accessToken: auth.accessToken, trackIds: [player.currentTrack!.id]) { error in
                     if let error {
                         print("Error trying to save track to library: \(error)")
                     } else {
@@ -159,8 +171,9 @@ struct LikeButtonView: View {
         } label: {
             isSaved ? Image(systemName: "heart.fill") : Image(systemName: "heart")
         }
-        .onAppear {
-            MySpotifyAPI.shared.checkSaved(accessToken: auth.accessToken, type: "track", Ids: [track.id]) { result, error  in
+        .onReceive(player.$currentTrack) { _ in
+            print("LikeBurron received \(player.$currentTrack)")
+            MySpotifyAPI.shared.checkSaved(accessToken: auth.accessToken, type: "track", Ids: [player.currentTrack!.id]) { result, error  in
                 print()
                 if let error {
                     print("Error checking if track is saved in Library: \(error)")
@@ -169,12 +182,23 @@ struct LikeButtonView: View {
                 }
             }
         }
+//        .onAppear {
+//            print("LikeBurron received \(player.$currentTrack)")
+//            MySpotifyAPI.shared.checkSaved(accessToken: auth.accessToken, type: "track", Ids: [player.currentTrack!.id]) { result, error  in
+//                print()
+//                if let error {
+//                    print("Error checking if track is saved in Library: \(error)")
+//                } else if let result {
+//                    isSaved = result.first!
+//                }
+//            }
+//        }
         .keyboardShortcut("s")
     }
 }
 
 struct PlayPauseButtonView: View {
-    @ObservedObject var player: Player
+    @EnvironmentObject var player: Player
     
     var body: some View {
         Button {
