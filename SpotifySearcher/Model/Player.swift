@@ -24,8 +24,7 @@ class Player: ObservableObject { // TODO: Change to session manager
     var timer: Timer?
 
     init() {
-        print("⏰⏰ Player INITIALISED ⏰⏰")
-        startTimer()
+        print("⏰ Player INITIALISED ⏰")
     }
     
     func startTimer() {

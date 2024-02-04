@@ -15,10 +15,10 @@ struct PlaceholderView: View {
     // If connected to a profile, show the user's image and say "welcome \(name)!"
     // Should auto disappear if successfully logged in.
     var body: some View {
-        Text("hi there")
-//            .onAppear {
-//                DispatchQueue.main.asyncAfter(deadline: .now() + 0.0) { NSApplication.shared.keyWindow?.close() }
-//            }
+        Text("PLACEHOLDER_LOGIN_SCREEN").padding()
+        Text("Will auto-close in 10 seconds.").padding()
+        Text("Use Command + Control + S to open/close the app (wait for this window to close).").padding()
+        Text("FUTURE: This will show login/auth information, and Spotify device selection.").padding()
     }
 }
 
@@ -31,23 +31,23 @@ struct SpotifySearcherApp: App {
 
 //    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
-    let hotkey = HotKey(key: .c, modifiers: [.command, .control])
+    let hotkey = HotKey(key: .s, modifiers: [.command, .control])
     
     var body: some Scene {
         Window("Home", id: "home") {
-            Button {
-                isMenuPresented.toggle()
-            } label: {
-                Text("\(isMenuPresented ? "Close" : "Open") menu")
-            }
             PlaceholderView()
-//            ContentView()
                 .environmentObject(auth)
                 .environmentObject(player)
                 .onAppear {
                     player.auth = auth
-//                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.0) { NSApplication.shared.keyWindow?.close() }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) { NSApplication.shared.keyWindow?.close() }
                     hotkey.keyDownHandler = {
+                        if isMenuPresented {
+                            player.stopTimer()
+                        } else {
+                            player.startTimer()
+//                            player.update()
+                        }
                         isMenuPresented.toggle()
                     }
                 }
