@@ -13,6 +13,7 @@
 		65409E9E2B69664000C880EF /* Keys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65409E9D2B69664000C880EF /* Keys.swift */; };
 		65409EA02B69C2F900C880EF /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65409E9F2B69C2F900C880EF /* AppDelegate.swift */; };
 		65409EA32B69E79200C880EF /* HotKey in Frameworks */ = {isa = PBXBuildFile; productRef = 65409EA22B69E79200C880EF /* HotKey */; };
+		6568C3F32B6F24D400ABD1DA /* MenuBarExtraAccess in Frameworks */ = {isa = PBXBuildFile; productRef = 6568C3F22B6F24D400ABD1DA /* MenuBarExtraAccess */; };
 		659B441D2B518ED000B74938 /* SpotifySearcherApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 659B441C2B518ED000B74938 /* SpotifySearcherApp.swift */; };
 		659B441F2B518ED000B74938 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 659B441E2B518ED000B74938 /* ContentView.swift */; };
 		659B44212B518ED100B74938 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 659B44202B518ED100B74938 /* Assets.xcassets */; };
@@ -75,6 +76,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6568C3F32B6F24D400ABD1DA /* MenuBarExtraAccess in Frameworks */,
 				65409EA32B69E79200C880EF /* HotKey in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -200,6 +202,7 @@
 			name = SpotifySearcher;
 			packageProductDependencies = (
 				65409EA22B69E79200C880EF /* HotKey */,
+				6568C3F22B6F24D400ABD1DA /* MenuBarExtraAccess */,
 			);
 			productName = SpotifySearcher;
 			productReference = 659B44192B518ED000B74938 /* SpotifySearcher.app */;
@@ -277,6 +280,7 @@
 				651C3D0B2B583D8800A9BC25 /* XCRemoteSwiftPackageReference "SpotifyAPI" */,
 				651C3D0C2B584D7800A9BC25 /* XCRemoteSwiftPackageReference "SpotifyAPIServer" */,
 				65409EA12B69E79200C880EF /* XCRemoteSwiftPackageReference "HotKey" */,
+				6568C3F12B6F24D400ABD1DA /* XCRemoteSwiftPackageReference "MenuBarExtraAccess" */,
 			);
 			productRefGroup = 659B441A2B518ED000B74938 /* Products */;
 			projectDirPath = "";
@@ -683,6 +687,14 @@
 				kind = branch;
 			};
 		};
+		6568C3F12B6F24D400ABD1DA /* XCRemoteSwiftPackageReference "MenuBarExtraAccess" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/orchetect/MenuBarExtraAccess";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.5;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -690,6 +702,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 65409EA12B69E79200C880EF /* XCRemoteSwiftPackageReference "HotKey" */;
 			productName = HotKey;
+		};
+		6568C3F22B6F24D400ABD1DA /* MenuBarExtraAccess */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6568C3F12B6F24D400ABD1DA /* XCRemoteSwiftPackageReference "MenuBarExtraAccess" */;
+			productName = MenuBarExtraAccess;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

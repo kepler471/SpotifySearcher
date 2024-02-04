@@ -7,6 +7,7 @@
 
 import SwiftUI
 import HotKey
+import MenuBarExtraAccess
 
 struct PlaceholderView: View {
     // This should be a login view. appears on startup
@@ -26,13 +27,19 @@ struct SpotifySearcherApp: App {
     @StateObject var auth = Auth()
     @StateObject var player = Player()
     @State private var showingDetail = false
+    @State var isMenuPresented: Bool = false
 
 //    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     let hotkey = HotKey(key: .c, modifiers: [.command, .control])
-
+    
     var body: some Scene {
         Window("Home", id: "home") {
+            Button {
+                isMenuPresented.toggle()
+            } label: {
+                Text("\(isMenuPresented ? "Close" : "Open") menu")
+            }
             PlaceholderView()
 //            ContentView()
                 .environmentObject(auth)
@@ -40,6 +47,9 @@ struct SpotifySearcherApp: App {
                 .onAppear {
                     player.auth = auth
 //                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.0) { NSApplication.shared.keyWindow?.close() }
+                    hotkey.keyDownHandler = {
+                        isMenuPresented.toggle()
+                    }
                 }
                 .onOpenURL { url in // TODO: Move within ContentView
                     // TODO: remove from this scope
@@ -71,6 +81,7 @@ struct SpotifySearcherApp: App {
                 .frame(width: 600, height: 600)
         }
         .menuBarExtraStyle(.window)
+        .menuBarExtraAccess(isPresented: $isMenuPresented)
         .defaultPosition(.topLeading)
     }
 }
