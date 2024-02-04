@@ -10,12 +10,8 @@ import CommonCrypto
 import Foundation
 import Foundation
 import AppKit
-import AVFoundation
 
 struct ContentView: View {
-    /// Keybind to add to queue
-    /// Keybind to play
-    /// Keybind to open in app
     
     @EnvironmentObject var auth: Auth
     
@@ -39,11 +35,9 @@ struct ContentView: View {
     
     @State private var selectedTab: Int = 0
     
-    @State private var listSelected: Bool = false
-    
     @FocusState private var focusZone: FocusZone?
     
-    @State private var previewPlayer: AVPlayer?
+    @State private var preview = false
     
     enum FocusZone {
         case textField
@@ -62,13 +56,11 @@ struct ContentView: View {
                 .padding(.top)
                 .focused($focusZone, equals: .textField)
                 .onSubmit {
-                    print("Enter pressed on Search")
                     MySpotifyAPI.shared.searchSpotify(accessToken: auth.accessToken, query: inputText) { results in
                         searchResults = results
                         if let firstTrackId = searchResults.tracks.items.first?.id {
                             selection = firstTrackId
                             focusZone = .itemList
-                            print("enter pressed -> now selecting item zone")
                         }
                     }
                 }
@@ -79,10 +71,8 @@ struct ContentView: View {
                 .onAppear {
                     NSEvent.addLocalMonitorForEvents(matching: .keyDown) { (aEvent) -> NSEvent? in
                         if aEvent.keyCode == 125,
-                           //                           selection == nil,
                            focusZone == .textField,
                            let firstTrackId = searchResults.tracks.items.first?.id {
-                            print("down and in text field")
                             selection = firstTrackId
                             focusZone = .itemList
                             return nil
@@ -91,60 +81,45 @@ struct ContentView: View {
                         return aEvent
                     }
                 }
-            //                .onKeyPress(.downArrow) {
-            //                    if let firstTrackId = searchResults.tracks.items.first?.id {
-            //                        print("down and in text field")
-            //                        selection = firstTrackId
-            //                        focusZone = .itemList
-            //                    }
-            //                    return .handled
-            //                }
                 .id("search")
             
             TabView(selection: $selectedTab) {
-                //                List(blanks, id: \.id, selection: $selection) { track in
                 List(searchResults.tracks.items, id: \.id, selection: $selection) { track in
                     
-                    TrackView(track: track)
-                        .onHover(perform: { hovering in
-                            // TODO: Hover code
-                            if hovering {
-                                selection = track.id
-                            }
-                        })
-                        .onAppear {
-                            NSEvent.addLocalMonitorForEvents(matching: .keyDown) { (aEvent) -> NSEvent? in
-                                if let selection,
-                                   aEvent.keyCode == 36,
-                                   focusZone == .itemList {
-                                    print("NSEvent: Enter pressed on \(selection) - sending startPlayback command")
-                                    player.startPlayback(uri: [makeURI(trackId: selection, type: "track")])
-                                    return nil
-                                }
-                                return aEvent
-                            }
+                    HStack {
+                        TrackView(track: track)
+                        Divider()
+                        AddToQueueButtonView(track: track)
+//                        Button {
+//                            preview.toggle()
+//                        } label: {
+//                            Text("preview")
+//                        }
+                    }
+                    .onHover { hovering in
+                        if hovering {
+                            selection = track.id
                         }
-                        .onTapGesture(count: 2, perform: {
-                            if let selection {
-                                print("double tapped on \(selection) - sending startPlayback command")
-                                player.startPlayback(uri: [makeURI(trackId: selection, type: "track")])
-                            }
-                        })
+                    }
+                    .onTapGesture(count: 2) {
+                        if let selection {
+                            print("double tapped on \(selection) - sending startPlayback command")
+                            player.startPlayback(trackIds: [selection], type: "track")
+                        }
+                    }
                     //                        .onKeyPress(.tab, action: {.ignored})
-                        .id(track.id)
+                    .id(track.id)
                     
+                }
+                .sheet(isPresented: $preview) {
+                    let toPlay = searchResults.tracks.items.first(where: {$0.id == selection})
+                    PreviewView(track: toPlay!)
+                    // TODO: Lockout input whilst previewing a track, other than add to queue
                 }
                 .focused($focusZone, equals: .itemList)
                 //                .onKeyPress(.return) {
                 //                    print("Enter pressed on \(selection!) - sending AppleScript command")
                 //                    sendAppleScriptCommand(id: makeURI(trackId: selection!, type: "track"))
-                //                    return .handled
-                //                }
-                //                .onKeyPress(.space) {
-                //                    print("space pressed -> attempting to play preview")
-                //                    let selectedTrack: Track = searchResults.tracks.items.first(where: {track in track.id == selection})!
-                //                    self.previewPlayer = AVPlayer(url: URL(string: selectedTrack.preview_url!)!)
-                //                    self.previewPlayer?.play()
                 //                    return .handled
                 //                }
                 .tabItem {
@@ -168,15 +143,13 @@ struct ContentView: View {
                     Text("Albums")
                 }
                 .tag(2)
-                
             }
             .onAppear {
                 NSEvent.addLocalMonitorForEvents(matching: .keyDown) { (aEvent) -> NSEvent? in
-                    if aEvent.keyCode == 126,
+                    if focusZone == .itemList,
+                       aEvent.keyCode == 126,
                        let firstTrackId = searchResults.tracks.items.first?.id,
-                       selection == firstTrackId,
-                       focusZone == .itemList {
-                        print("up and top of list")
+                       selection == firstTrackId {
                         selection = nil
                         focusZone = .textField
                         return nil
@@ -190,51 +163,26 @@ struct ContentView: View {
                         selection = nil
                         return nil
                     }
+                    
+                    if focusZone == .itemList,
+                       aEvent.keyCode == 49,
+                       let selection {
+                        print("NSEvent: Space pressed on \(selection) - try to play preview")
+                        preview.toggle()
+                        return nil
+                    }
+                    
+                    if focusZone == .itemList,
+                       let selection,
+                       aEvent.keyCode == 36 {
+                        print("NSEvent: Enter pressed on \(selection) - sending startPlayback command")
+                        player.startPlayback(trackIds: [selection], type: "track")
+                        return nil
+                    }
+                    
                     return aEvent
                 }
             }
-            //            .onKeyPress(characters: .alphanumerics) { press in
-            //                if press.modifiers.isEmpty {
-            //                    print("char pressed: \(press)")
-            //                    focusZone = .textField
-            //                    selection = nil
-            //                }
-            //
-            //                let chars = press.characters
-            //                let mods = press.modifiers
-            //
-            //                if mods.contains(.command) {
-            //                    print("char+mods pressed: \(press)")
-            //                    switch chars {
-            //                    case "f":
-            /// See https://chat.openai.com/share/0bbb6386-c388-4ef8-8f84-7a696faffb4c for potential fix to textbox lockout on ⌘-F
-            //                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            //                            focusZone = .textField
-            //                            selection = nil
-            //                            }
-            //                    // TODO: Split from this view, so tab selection can be made from all of contentview
-            //                    case "1":
-            //                        selectedTab = 0
-            //                    case "2":
-            //                        selectedTab = 1
-            //                    case "3":
-            //                        selectedTab = 2
-            //                    default:
-            //                        ()
-            //                    }
-            //                }
-            //
-            //                return .handled
-            //            }
-            //            .onKeyPress(.upArrow) {
-            //                if searchResults.tracks.items.first?.id == selection {
-            //                    print("up and top of list")
-            //                    selection = nil
-            //                    focusZone = .textField
-            //                    return .handled
-            //                }
-            //                return .ignored
-            //            }
             
             CurrentTrackView().padding([.leading, .bottom, .trailing])
         }
@@ -245,11 +193,15 @@ struct ContentView: View {
     
 }
 
-private func makeURI(trackId: String, type: String) -> URL {
+func makeURI(trackId: String, type: String) -> URL {
     return URL(string: "spotify:\(type):\(trackId)")!
 }
 
-private func sendAppleScriptCommand(id: URL) {
+func makeURL(trackId: String, type: String) -> URL {
+    return URL(string: "https://open.spotify.com/\(type)/\(trackId)?si")!
+}
+
+func sendAppleScriptCommand(id: URL) {
     let script = "tell application \"Spotify\" to play track \"\(id)\""
     if let appleScript = NSAppleScript(source: script) {
         var errorDict: NSDictionary?

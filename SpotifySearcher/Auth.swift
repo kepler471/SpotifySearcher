@@ -41,10 +41,9 @@ class Auth: ObservableObject {
                 refreshTheToken() { [self] result in
                     switch result {
                     case .success(let refreshResponse):
-                        print("Scheduled Refresh successful, setting auth.accessToken")
                         accessToken = refreshResponse.accessToken
                     case .failure(let error):
-                        print("Refresh error, \(error)")
+                        print("<<<Auth>>> Refresh error, \(error)")
                     }
                 }
             }
@@ -53,22 +52,21 @@ class Auth: ObservableObject {
         if let token = retrieveFromKeychain(account: "com.kepler471.SpotifySearcher.refreshtoken") {
             /// TODO: Can we store the expiresIn alongside the token?
             /// Then we can check if we actually need to refresh or not
-            print("Retrieved token from Keychain")
             DispatchQueue.main.async { [self] in
                 refreshToken = token
                 refreshTheToken() { [self] result in
                     switch result {
                     case .success(let refreshResponse):
-                        print("App Init Refresh successful, setting auth.accessToken")
+                        print("<<<Auth>>> 🗝️♻️")
                         accessToken = refreshResponse.accessToken
                     case .failure(let error):
-                        print("Refresh error, \(error)")
+                        print("<<<Auth>>> 🗝️🛑, \(error)")
                     }
                 }
             }
             
         } else {
-            print("No token found, continue to auth flow")
+            print("<<<Auth>>> 🔎🗝️🚫")
             authorizeInit()
         }
     }
@@ -89,9 +87,9 @@ class Auth: ObservableObject {
         components.url?.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
         
         if let url = components.url {
-            // Open URL in browser
-            //            NSWorkspace.shared.open(URL(string: authorizationURL)!)
             NSWorkspace.shared.open(url)
+        } else {
+            print("<<<Auth>>> Auth URL for code retrieval was not valid!!")
         }
     }
     
@@ -120,12 +118,9 @@ class Auth: ObservableObject {
     func handleRedirectURL(url: URL) -> String? {
         guard let components = URLComponents(url: url, resolvingAgainstBaseURL: true),
               let code = components.queryItems?.first(where: { $0.name == "code" })?.value else {
-            // Handle error: No code in URL
+            print("<<<Auth>>> No 🔑 code in redirect URL")
             return nil
         }
-        
-        // Now you have the authorization code
-        print("Got authorization code")
         return code
     }
     
@@ -145,7 +140,7 @@ class Auth: ObservableObject {
         
         let credentials = "\(clientId):\(clientSecret)"
         guard let credentialsData = credentials.data(using: .utf8) else {
-            completion(.failure(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Error encoding credentials"])))
+            completion(.failure(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "<<<Auth>>> Error encoding credentials for code exchange"])))
             return
         }
         let base64Credentials = credentialsData.base64EncodedString(options: [])
@@ -154,17 +149,13 @@ class Auth: ObservableObject {
         request.addValue("Basic \(base64Credentials)", forHTTPHeaderField: "Authorization")
         request.httpBody = bodyComponents.query?.data(using: .utf8)
         
-        print("\(request.httpMethod!) \(request.url!)")
-        print(request.allHTTPHeaderFields!)
-        print(String(data: request.httpBody ?? Data(), encoding: .utf8)!)
-        
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 completion(.failure(error))
                 return
             }
             guard let data = data else {
-                completion(.failure(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
+                completion(.failure(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "<<<Auth>>> No data received in code exchange"])))
                 return
             }
             
@@ -201,17 +192,13 @@ class Auth: ObservableObject {
         request.addValue("Basic \(base64Credentials)", forHTTPHeaderField: "Authorization")
         request.httpBody = bodyComponents.query?.data(using: .utf8)
         
-        print("\(request.httpMethod!) \(request.url!)")
-        print(request.allHTTPHeaderFields!)
-        print(String(data: request.httpBody ?? Data(), encoding: .utf8)!)
-        
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 completion(.failure(error))
                 return
             }
             guard let data = data else {
-                completion(.failure(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
+                completion(.failure(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "<<<Auth>>> No data received for token refresh"])))
                 return
             }
             
@@ -241,8 +228,6 @@ class Auth: ObservableObject {
     }
     
     func retrieveFromKeychain(account: String) -> String? {
-        /// TODO: Can we store the expiresIn alongside the token?
-        /// Then we can check if we actually need to refresh or not
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: account,

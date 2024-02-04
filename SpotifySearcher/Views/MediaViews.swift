@@ -7,10 +7,11 @@
 
 import Foundation
 import SwiftUI
+import AVFoundation
 
 struct HoverUnderlineModifier: ViewModifier {
     @State private var isHovering: Bool = false
-
+    
     func body(content: Content) -> some View {
         content
             .underline(isHovering)
@@ -20,12 +21,11 @@ struct HoverUnderlineModifier: ViewModifier {
     }
 }
 
-
 struct AlbumView: View {
     let artists: [Artist]
     let album: Album
     let artwork: Artwork
-
+    
     var body: some View {
         HStack {
             AsyncImage(url: artwork.url)
@@ -56,13 +56,13 @@ struct AlbumView: View {
 
 struct ArtistView: View {
     let artist: Artist
-//    let artwork: Artwork
-
+    //    let artwork: Artwork
+    
     var body: some View {
         HStack {
-//            AsyncImage(url: artwork.url)
-//                .resizable()
-//                .scaledToFit()
+            //            AsyncImage(url: artwork.url)
+            //                .resizable()
+            //                .scaledToFit()
             Link(artist.name, destination: URL(string: artist.uri)!)
                 .modifier(HoverUnderlineModifier())
             Spacer()
@@ -76,12 +76,10 @@ struct ArtistView: View {
 
 struct TrackView: View {
     let track: Track // TODO: Make these all Optionals
-
+    
     var body: some View {
         HStack {
             AsyncImage(url: URL(string: track.album.images.last!.url)!)
-//                .resizable()
-//                .scaledToFit()
             VStack(alignment: .leading) {
                 Link(track.name, destination: URL(string: track.uri)!)
                     .font(.title)
@@ -109,30 +107,19 @@ struct TrackView: View {
     }
 }
 
-/// Assuming a track is always playing (so we do not need to create a blank CurrentTrackView yet:
-/// - how do we get it to update to whether the state is playing or paused?
-/// - how do we get it to update to the currently playing track?
 struct CurrentTrackView: View {
     @EnvironmentObject var player: Player
-
+    
     var body: some View {
         HStack {
             if let track = player.currentTrack {
-                
                 TrackView(track: track)
-                
                 LikeButtonView()
-        
                 PlayPauseButtonView()
-                
             } else {
-                
                 Image(systemName: "music.note.list").frame(width: 64, height: 64).font(.title)
-                
                 Spacer()
-                
                 Text("----------------").font(.title)
-
                 Spacer()
             }
         }
@@ -143,27 +130,20 @@ struct LikeButtonView: View {
     @EnvironmentObject var auth: Auth
     @EnvironmentObject var player: Player
     @State var isSaved: Bool = false
-//    @State var track: Track
     
     var body: some View {
         
         Button {
-            print("click like")
-            
             if isSaved {
                 MySpotifyAPI.shared.removeTracksFromLibrary(accessToken: auth.accessToken, trackIds: [player.currentTrack!.id]) { error in
                     if let error {
-                        print("Error trying to remove track from library: \(error)")
-                    } else {
-                        print("Tracks successfully removed from the library")
+                        print("<<<Like>>> 💔 Error trying to remove track from library: \(error)")
                     }
                 }
             } else {
                 MySpotifyAPI.shared.saveTracksToLibrary(accessToken: auth.accessToken, trackIds: [player.currentTrack!.id]) { error in
                     if let error {
-                        print("Error trying to save track to library: \(error)")
-                    } else {
-                        print("Tracks successfully saved to the library")
+                        print("<<<Like>>> ❤️ Error trying to save track to library: \(error)")
                     }
                 }
             }
@@ -172,27 +152,14 @@ struct LikeButtonView: View {
             isSaved ? Image(systemName: "heart.fill") : Image(systemName: "heart")
         }
         .onReceive(player.$currentTrack) { _ in
-            print("LikeBurron received \(player.$currentTrack)")
             MySpotifyAPI.shared.checkSaved(accessToken: auth.accessToken, type: "track", Ids: [player.currentTrack!.id]) { result, error  in
-                print()
                 if let error {
-                    print("Error checking if track is saved in Library: \(error)")
+                    print("<<<Like>>> 🔎❤️ Error checking if track is saved in Library: \(error)")
                 } else if let result {
                     isSaved = result.first!
                 }
             }
         }
-//        .onAppear {
-//            print("LikeBurron received \(player.$currentTrack)")
-//            MySpotifyAPI.shared.checkSaved(accessToken: auth.accessToken, type: "track", Ids: [player.currentTrack!.id]) { result, error  in
-//                print()
-//                if let error {
-//                    print("Error checking if track is saved in Library: \(error)")
-//                } else if let result {
-//                    isSaved = result.first!
-//                }
-//            }
-//        }
         .keyboardShortcut("s")
     }
 }
@@ -202,11 +169,57 @@ struct PlayPauseButtonView: View {
     
     var body: some View {
         Button {
-            /// The timer checks and updates `isPlaying`. If this button attempts to update `isPlaying`, there can be some crossover in the time it takes to pause/play, manually setting `isPlaying` in the Button, and the timer, causing the pause/play command to not do anything. For now lets just let the timer set isPlaying, but try to come up with a better way to manage this.
-            print("click play/pause")
             player.togglePlaying()
         } label: {
             player.isPlaying ? Image(systemName: "pause.fill") : Image(systemName: "play.fill")
+        }
+    }
+}
+
+struct AddToQueueButtonView: View {
+    @EnvironmentObject var auth: Auth
+    let track: Track
+    
+    var body: some View {
+        Button {
+            MySpotifyAPI.shared.addToQueue(accessToken: auth.accessToken, trackUri: track.uri) { _ in }
+        } label: {
+            Image(systemName: "text.badge.plus")
+        }
+        .keyboardShortcut("a")
+    }
+}
+
+struct PreviewView: View {
+    @State private var player: AVPlayer?
+    @State private var volume: Double = 1.0
+    let track: Track
+    
+    // TODO: Lower Spotify audio when this is playing
+    // TODO: Update the slider live (before releasing)
+    
+    var body: some View {
+        if let preview_url = track.preview_url {
+            AsyncImage(url: URL(string: track.album.images[1].url)!)
+            Slider(value: $volume, in: 0...1, step: 0.01) {
+                Image(systemName: "volume.2.fill")
+            } onEditingChanged: { editing in
+                player?.volume = Float(volume)
+            }
+            .padding()
+            .onAppear {
+                print("space pressed -> attempting to play preview")
+                player = AVPlayer(url: URL(string: preview_url)!)
+                player?.play()
+                player?.volume = Float(volume)
+            }
+            .onDisappear {
+                print("close preview")
+                player?.pause()
+                player = nil
+            }
+        } else {
+            Text("No Preview found for this track")
         }
     }
 }

@@ -62,6 +62,7 @@
 		659B44382B518ED200B74938 /* SpotifySearcherUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifySearcherUITests.swift; sourceTree = "<group>"; };
 		659B443A2B518ED200B74938 /* SpotifySearcherUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifySearcherUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		65A5D0C12B5321AC00FA102C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		65C59AFE2B6D447700CBB917 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		65F059B72B5D4DA900B5B6D7 /* Spotify.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spotify.swift; sourceTree = "<group>"; };
 		65F059B92B5D6FFA00B5B6D7 /* SwiftLearning.playground */ = {isa = PBXFileReference; lastKnownFileType = file.playground; path = SwiftLearning.playground; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		65F059BD2B5EBEF800B5B6D7 /* MediaViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaViews.swift; sourceTree = "<group>"; };
@@ -176,6 +177,7 @@
 			children = (
 				65FE45712B681E520050C3C9 /* Player.swift */,
 				65F059B72B5D4DA900B5B6D7 /* Spotify.swift */,
+				65C59AFE2B6D447700CBB917 /* README.md */,
 			);
 			path = Model;
 			sourceTree = "<group>";

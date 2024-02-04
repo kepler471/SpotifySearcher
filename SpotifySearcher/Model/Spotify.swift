@@ -5,7 +5,7 @@
 //  Created by Stelios Georgiou on 21/01/2024.
 //
 
-            let blank1 = Track(name: "Rap Protester", id: "6CCIqr8xROr3jTnXf4GI3B", album: Album(artists: [Artist(name: "Le Char", id: "09hVIj6vWgoCDtT03h8ZCa", uri: "artist:URI")], name: "Fake Album Name", id: "1p12OAWwudgMqfMzjMvl2a", images: [SpotifyImage(url: "https://i.scdn.co/image/ab67616d00004851f38c6b37a21334e22005b1f7", height: 64, width: 64)], uri: "spotify:album:1p12OAWwudgMqfMzjMvl2a"), artists: [Artist(name: "Le Char", id: "09hVIj6vWgoCDtT03h8ZCa", uri: "spotify:artist:09hVIj6vWgoCDtT03h8ZCa")], uri: "spotify:track:6CCIqr8xROr3jTnXf4GI3B", preview_url: "https://p.scdn.co/mp3-preview/8ca060b3fa2f75ce0f1889f38fdc8562a763b801?cid=f050ee486c4f4ceeb53fd54ab2d3cedb")
+//            let blank1 = Track(name: "Rap Protester", id: "6CCIqr8xROr3jTnXf4GI3B", album: Album(artists: [Artist(name: "Le Char", id: "09hVIj6vWgoCDtT03h8ZCa", uri: "artist:URI")], name: "Fake Album Name", id: "1p12OAWwudgMqfMzjMvl2a", images: [SpotifyImage(url: "https://i.scdn.co/image/ab67616d00004851f38c6b37a21334e22005b1f7", height: 64, width: 64)], uri: "spotify:album:1p12OAWwudgMqfMzjMvl2a"), artists: [Artist(name: "Le Char", id: "09hVIj6vWgoCDtT03h8ZCa", uri: "spotify:artist:09hVIj6vWgoCDtT03h8ZCa")], uri: "spotify:track:6CCIqr8xROr3jTnXf4GI3B", preview_url: "https://p.scdn.co/mp3-preview/8ca060b3fa2f75ce0f1889f38fdc8562a763b801?cid=f050ee486c4f4ceeb53fd54ab2d3cedb")
 //
 //            let blank2 = Track(name: "Butter", id: "758mQT4zzlvBhy9PvNePwC", album: Album(artists: [Artist(name: "Le Char", id: "09hVIj6vWgoCDtT03h8ZCa", uri: "artist:URI")], name: "Fake Album Name", id: "1p12OAWwudgMqfMzjMvl2a", images: [SpotifyImage(url: "https://i.scdn.co/image/ab67616d00004851f38c6b37a21334e22005b1f7", height: 64, width: 64)], uri: "spotify:album:1p12OAWwudgMqfMzjMvl2a"), artists: [Artist(name: "Le Char", id: "09hVIj6vWgoCDtT03h8ZCa", uri: "spotify:artist:09hVIj6vWgoCDtT03h8ZCa")], uri: "spotify:track:758mQT4zzlvBhy9PvNePwC", preview_url: "https://p.scdn.co/mp3-preview/8ca060b3fa2f75ce0f1889f38fdc8562a763b801?cid=f050ee486c4f4ceeb53fd54ab2d3cedb")
 //
@@ -80,16 +80,16 @@ struct SpotifySaveCheckResponse: Decodable {
 }
 
 struct SpotifyCurrentTrackResponse: Decodable {
-//    let device: SpotifyDevice
-//    let repeat_state: String // TODO: Can we use an enum here?
-//    let shuffle_state: Bool
-//    let context: SpotifyContext
-//    let timestamp: Int
-//    let progress_ms: Int
+    let device: SpotifyDevice?
+    let repeat_state: String? // TODO: Can we use an enum here?
+    let shuffle_state: Bool?
+    let context: SpotifyContext?
+    let timestamp: Int?
+    let progress_ms: Int
     let is_playing: Bool
     let item: Track? // Can also be Episode but not supported yet
-//    let current_playing_type: String
-//    let actions: SpotifyActions
+    let current_playing_type: String?
+    let actions: SpotifyActions
 }
 
 struct SpotifyDevice: Decodable {
@@ -169,33 +169,143 @@ class MySpotifyAPI {
         }.resume()
     }
     
-    func getCurrentTrack(accessToken: String, completion: @escaping (SpotifyCurrentTrackResponse) -> Void) {
+//    func getCurrentTrack(accessToken: String, completion: @escaping (SpotifyCurrentTrackResponse) -> Void) {
+//        print("<<<API>>> getCurrentTrack()")
+//        let url = URL(string: "\(baseUrl)/me/player/currently-playing")!
+//        var request = URLRequest(url: url)
+//        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+//        URLSession.shared.dataTask(with: request) { data, response, error in
+//            if let error = error { // TODO: Can we remove all these repeated `= data/error`??
+//                print("Error making the current playing track request: \(error)")
+//                return
+//            }
+//
+//            guard let data = data else {
+//                print("No data in current playing track response")
+//                return
+//            }
+//            
+//            do {
+//                let decodedResponse = try JSONDecoder().decode(SpotifyCurrentTrackResponse.self, from: data)
+//                DispatchQueue.main.async {
+//                    completion(decodedResponse)
+//                }
+//            } catch {
+//                // catch "EMPTY_RESPONSE" response here
+//                print("Failed to decode current track JSON: \(error)")
+//            }
+//        }.resume()
+//    }
+    
+    enum CurrentTrackResult {
+        case success(SpotifyCurrentTrackResponse)
+        case emptyResponse
+    }
+
+    func getCurrentTrack(accessToken: String, completion: @escaping (CurrentTrackResult) -> Void) {
         print("<<<API>>> getCurrentTrack()")
+        let baseUrl = "https://api.spotify.com/v1" // Assuming baseUrl is defined
         let url = URL(string: "\(baseUrl)/me/player/currently-playing")!
-//        print(url)
         var request = URLRequest(url: url)
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error { // TODO: Can we remove all these repeated `= data/error`??
+            if let error = error {
                 print("Error making the current playing track request: \(error)")
+                // In a real app, you might want to handle errors more gracefully
                 return
             }
 
-            guard let data = data else {
-                print("No data in current playing track response")
+            guard let httpResponse = response as? HTTPURLResponse else {
+                // Handle unexpected error
                 return
             }
-            
-            do {
-                let decodedResponse = try JSONDecoder().decode(SpotifyCurrentTrackResponse.self, from: data)
-                DispatchQueue.main.async {
-                    completion(decodedResponse)
+
+            switch httpResponse.statusCode {
+            case 200:
+                guard let data = data else {
+                    print("No data in current playing track response")
+                    completion(.emptyResponse)
+                    return
                 }
-            } catch {
-                print("Failed to decode current track JSON: \(error)")
+                
+                do {
+                    let decodedResponse = try JSONDecoder().decode(SpotifyCurrentTrackResponse.self, from: data)
+                    DispatchQueue.main.async {
+                        completion(.success(decodedResponse))
+                    }
+                } catch {
+                    print("Failed to decode current track JSON: \(error)")
+                    // Consider how to handle decoding errors
+                }
+            case 204:
+                DispatchQueue.main.async {
+                    completion(.emptyResponse)
+                }
+            default:
+                // Handle other HTTP responses accordingly
+                print("Received HTTP \(httpResponse.statusCode)")
             }
         }.resume()
     }
+
+    
+//    // Define a custom error to handle different scenarios including decoding errors and HTTP errors
+//    enum SpotifyAPIError: Error {
+//        case networkError(Error)
+//        case dataNotFound
+//        case decodingError(Error)
+//        case httpError(Int)
+//    }
+//
+//    func getCurrentTrack(accessToken: String, completion: @escaping (Result<SpotifyCurrentTrackResponse, SpotifyAPIError>, Int?) -> Void) {
+//        print("<<<API>>> getCurrentTrack()")
+//        let baseUrl = "https://api.spotify.com/v1" // Assuming baseUrl is defined
+//        let url = URL(string: "\(baseUrl)/me/player/currently-playing")!
+//        var request = URLRequest(url: url)
+//        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+//        
+//        URLSession.shared.dataTask(with: request) { data, response, error in
+//            if let error = error {
+//                print("Error making the current playing track request: \(error)")
+//                completion(.failure(.networkError(error)), nil)
+//                return
+//            }
+//            
+//            guard let httpResponse = response as? HTTPURLResponse else {
+//                completion(.failure(.httpError(0)), nil) // Undefined HTTP response
+//                return
+//            }
+//            
+//            let statusCode = httpResponse.statusCode
+//            guard statusCode == 200, let data = data else {
+//                if statusCode == 204 { // No content
+//                    completion(.success(nil), 204)
+//                } else {
+//                    completion(.failure(.httpError(statusCode)), statusCode)
+//                }
+//                return
+//            }
+//            
+//            do {
+//                let decodedResponse = try JSONDecoder().decode(SpotifyCurrentTrackResponse.self, from: data)
+//                DispatchQueue.main.async {
+//                    completion(.success(decodedResponse), statusCode)
+//                }
+//            } catch {
+//                print("Failed to decode current track JSON: \(error)")
+//                completion(.failure(.decodingError(error)), statusCode)
+//            }
+//        }.resume()
+//    }
+
+    
+//    func getPlaybackState(accessToken: String, completions: @escaping (Result<Void, Error>) -> Void) {
+//        let url = URL(string: "https://api.spotify.com/v1/me/player")!
+//        var request = URLRequest(url: url)
+//        request.httpMethod = "GET"
+//        request.addValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+//        
+//    }
     
     func startResumePlayback(accessToken: String, uris: [URL]? = nil, contextUri: URL? = nil, completion: @escaping (Result<Void, Error>) -> Void) {
         print("<<<API>>> startResumePlayback()")
@@ -261,7 +371,7 @@ class MySpotifyAPI {
 
     
     func checkSaved(accessToken: String, type: String, Ids: [String], completion: @escaping ([Bool]?, Error?) -> Void) {
-        print("<<<API>>> checkTracksSavedInLibrary(\(Ids))")
+        print("<<<API>>> checkSaved(\(Ids))")
         let ids = Ids.joined(separator: ",")
         let url = URL(string: "https://api.spotify.com/v1/me/\(type)s/contains?ids=\(ids)")!
         
@@ -349,4 +459,34 @@ class MySpotifyAPI {
         task.resume()
     }
 
+    func addToQueue(accessToken: String, trackUri: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        print("<<<API>>> addToQueue(\(trackUri))")
+        let baseUrl = "https://api.spotify.com/v1/me/player/queue"
+        guard let url = URL(string: "\(baseUrl)?uri=\(trackUri)") else {
+            completion(.failure(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+
+        let session = URLSession.shared
+        let task = session.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 204 else {
+                completion(.failure(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to add track to queue"])))
+                return
+            }
+            completion(.success(()))
+        }
+        task.resume()
+    }
+
+    func getVolumeLevel(accessToken: String) {}
+    
+    func setVolumeLevel(accessToken: String, volume: Float) {}
 }
