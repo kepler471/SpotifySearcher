@@ -35,12 +35,13 @@ struct SpotifySearcherApp: App {
     
     var body: some Scene {
         Window("Home", id: "home") {
-            PlaceholderView()
+//            PlaceholderView()
+            ContentView()
                 .environmentObject(auth)
                 .environmentObject(player)
                 .onAppear {
                     player.auth = auth
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) { NSApplication.shared.keyWindow?.close() }
+//                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { NSApplication.shared.keyWindow?.close() }
                     hotkey.keyDownHandler = {
                         if isMenuPresented {
                             player.stopTimer()
@@ -77,7 +78,10 @@ struct SpotifySearcherApp: App {
             ContentView()
                 .environmentObject(auth)
                 .environmentObject(player)
-                .onAppear { player.auth = auth }
+                .onAppear {
+                    player.auth = auth
+                    player.startTimer()
+                }
                 .frame(width: 600, height: 600)
         }
         .menuBarExtraStyle(.window)

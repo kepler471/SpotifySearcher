@@ -97,11 +97,6 @@ struct ContentView: View {
 //                            Text("preview")
 //                        }
                     }
-                    .onHover { hovering in
-                        if hovering {
-                            selection = track.id
-                        }
-                    }
                     .onTapGesture(count: 2) {
                         if let selection {
                             print("double tapped on \(selection) - sending startPlayback command")

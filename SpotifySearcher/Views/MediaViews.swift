@@ -84,21 +84,26 @@ struct TrackView: View {
                 Link(track.name, destination: URL(string: track.uri)!)
                     .font(.title)
                     .modifier(HoverUnderlineModifier())
+//                    .fixedSize(horizontal: true, vertical: false)
                 HStack {
                     ForEach(track.artists, id: \.id) { artist in
                         if artist.id != track.artists.last?.id {
                             Link(artist.name + ",", destination: URL(string: artist.uri)!)
                                 .modifier(HoverUnderlineModifier())
+//                                .fixedSize(horizontal: true, vertical: false)
                         } else {
                             Link(artist.name, destination: URL(string: artist.uri)!)
                                 .modifier(HoverUnderlineModifier())
+//                                .fixedSize(horizontal: true, vertical: false)
                         }
                     }
                 }
             }
+//            .frame(width: 300)
             Spacer()
             Link(track.album.name, destination: URL(string: track.album.uri)!)
                 .modifier(HoverUnderlineModifier())
+//                .fixedSize(horizontal: true, vertical: false)
         }
         .foregroundStyle(.secondary)
         .listRowSeparator(.hidden)
@@ -133,6 +138,12 @@ struct LikeButtonView: View {
     
     var body: some View {
         
+//        VStack {
+//            Button(action: {}, label: {
+//                Image(systemName: "leaf.fill")
+//            })
+//        }.accentColor(Color(.systemPink))
+        
         Button {
             if isSaved {
                 MySpotifyAPI.shared.removeTracksFromLibrary(accessToken: auth.accessToken, trackIds: [player.currentTrack!.id]) { error in
@@ -151,6 +162,11 @@ struct LikeButtonView: View {
         } label: {
             isSaved ? Image(systemName: "heart.fill") : Image(systemName: "heart")
         }
+//        .foregroundStyle(.red)
+//        .backgroundStyle(.blue)
+//        .tint(.purple)
+        .scaleEffect(1)
+        .animation(.linear(duration: 1), value: 1)
         .onReceive(player.$currentTrack) { _ in
             MySpotifyAPI.shared.checkSaved(accessToken: auth.accessToken, type: "track", Ids: [player.currentTrack!.id]) { result, error  in
                 if let error {
@@ -197,6 +213,7 @@ struct PreviewView: View {
     
     // TODO: Lower Spotify audio when this is playing
     // TODO: Update the slider live (before releasing)
+    // TODO: Fix me I'm buggy
     
     var body: some View {
         if let preview_url = track.preview_url {
