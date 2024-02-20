@@ -49,6 +49,7 @@ struct SpotifySearcherApp: App {
                             player.startTimer()
 //                            player.update()
                         }
+                        // TODO: Need to add this toggle for when the user clicks away or clicks the iconn
                         isMenuPresented.toggle()
                     }
                 }
@@ -82,7 +83,7 @@ struct SpotifySearcherApp: App {
                     player.auth = auth
                     player.startTimer()
                 }
-                .frame(width: 600, height: 600)
+//                .frame(width: 600, height: 600)
         }
         .menuBarExtraStyle(.window)
         .menuBarExtraAccess(isPresented: $isMenuPresented)

@@ -44,11 +44,13 @@ struct MarqueeView: View {
                 angle += size.width
             }
         }
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        Text("This is some text that is too long to fit within the view!")
             .padding()
         //            .rotationEffect(.degrees(angle))
             .offset(x: angle, y: 0)
             .animation(.easeIn, value: angle)
+//            .fixedSize(horizontal: true, vertical: true)
+            .lineLimit(2)
 
         Text(size.debugDescription)
             .saveSize(in: $size)
@@ -57,4 +59,5 @@ struct MarqueeView: View {
 
 #Preview {
     MarqueeView()
+        .frame(width: 200, height: 50, alignment: .center)
 }
