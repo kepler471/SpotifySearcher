@@ -89,6 +89,12 @@ struct ContentView: View {
                     
                     HStack {
                         TrackView(track: track)
+                            .onTapGesture(count: 2) {
+                                if let selection {
+                                    print("double tapped on \(selection) - sending startPlayback command")
+                                    player.startPlayback(trackIds: [selection], type: "track")
+                                }
+                            }
                         Divider()
                         AddToQueueButtonView(track: track)
 //                        Button {
@@ -96,12 +102,6 @@ struct ContentView: View {
 //                        } label: {
 //                            Text("preview")
 //                        }
-                    }
-                    .onTapGesture(count: 2) {
-                        if let selection {
-                            print("double tapped on \(selection) - sending startPlayback command")
-                            player.startPlayback(trackIds: [selection], type: "track")
-                        }
                     }
                     //                        .onKeyPress(.tab, action: {.ignored})
                     .id(track.id)
@@ -180,7 +180,9 @@ struct ContentView: View {
                 }
             }
             
-            CurrentTrackView().padding([.leading, .bottom, .trailing])
+            CurrentTrackView()
+                .padding([.leading, .bottom, .trailing])
+                .background(.purple)
         }
         //        .onKeyPress(.tab, action: {.handled}) // app level block of Tab usage
     }
