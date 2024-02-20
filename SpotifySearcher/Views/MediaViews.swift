@@ -76,33 +76,25 @@ struct ArtistView: View {
 
 struct TrackView: View {
     let track: Track // TODO: Make these all Optionals
+    var isMarqueeActive = false
     
     var body: some View {
         HStack {
             AsyncImage(url: URL(string: track.album.images.last!.url)!)
             VStack(alignment: .leading) {
-                Link(track.name, destination: URL(string: track.uri)!)
-                    .font(.title)
-                    .modifier(HoverUnderlineModifier())
+                
+                MarqueeView(track, linkType: .track, marquee: isMarqueeActive)
 //                    .fixedSize(horizontal: true, vertical: false)
-                HStack {
-                    ForEach(track.artists, id: \.id) { artist in
-                        if artist.id != track.artists.last?.id {
-                            Link(artist.name + ",", destination: URL(string: artist.uri)!)
-                                .modifier(HoverUnderlineModifier())
-//                                .fixedSize(horizontal: true, vertical: false)
-                        } else {
-                            Link(artist.name, destination: URL(string: artist.uri)!)
-                                .modifier(HoverUnderlineModifier())
-//                                .fixedSize(horizontal: true, vertical: false)
-                        }
-                    }
-                }
+                
+                MarqueeView(track, linkType: .artists, marquee: true)
+//                    .fixedSize(horizontal: true, vertical: false)
+                
             }
-//            .frame(width: 300)
+            .frame(width: 300, alignment: .leading)
+            
             Spacer()
-            Link(track.album.name, destination: URL(string: track.album.uri)!)
-                .modifier(HoverUnderlineModifier())
+            
+            MarqueeView(track, linkType: .album, marquee: isMarqueeActive)
 //                .fixedSize(horizontal: true, vertical: false)
         }
         .foregroundStyle(.secondary)
@@ -118,7 +110,7 @@ struct CurrentTrackView: View {
     var body: some View {
         HStack {
             if let track = player.currentTrack {
-                TrackView(track: track)
+                TrackView(track: track, isMarqueeActive: true)
                 LikeButtonView()
                 PlayPauseButtonView()
             } else {
@@ -128,55 +120,6 @@ struct CurrentTrackView: View {
                 Spacer()
             }
         }
-    }
-}
-
-struct LikeButtonView: View {
-    @EnvironmentObject var auth: Auth
-    @EnvironmentObject var player: Player
-    @State var isSaved: Bool = false
-    
-    var body: some View {
-        
-//        VStack {
-//            Button(action: {}, label: {
-//                Image(systemName: "leaf.fill")
-//            })
-//        }.accentColor(Color(.systemPink))
-        
-        Button {
-            if isSaved {
-                MySpotifyAPI.shared.removeTracksFromLibrary(accessToken: auth.accessToken, trackIds: [player.currentTrack!.id]) { error in
-                    if let error {
-                        print("<<<Like>>> 💔 Error trying to remove track from library: \(error)")
-                    }
-                }
-            } else {
-                MySpotifyAPI.shared.saveTracksToLibrary(accessToken: auth.accessToken, trackIds: [player.currentTrack!.id]) { error in
-                    if let error {
-                        print("<<<Like>>> ❤️ Error trying to save track to library: \(error)")
-                    }
-                }
-            }
-            isSaved.toggle()
-        } label: {
-            isSaved ? Image(systemName: "heart.fill") : Image(systemName: "heart")
-        }
-//        .foregroundStyle(.red)
-//        .backgroundStyle(.blue)
-//        .tint(.purple)
-        .scaleEffect(1)
-        .animation(.linear(duration: 1), value: 1)
-        .onReceive(player.$currentTrack) { _ in
-            MySpotifyAPI.shared.checkSaved(accessToken: auth.accessToken, type: "track", Ids: [player.currentTrack!.id]) { result, error  in
-                if let error {
-                    print("<<<Like>>> 🔎❤️ Error checking if track is saved in Library: \(error)")
-                } else if let result {
-                    isSaved = result.first!
-                }
-            }
-        }
-        .keyboardShortcut("s")
     }
 }
 
@@ -239,4 +182,14 @@ struct PreviewView: View {
             Text("No Preview found for this track")
         }
     }
+}
+
+let blank0 = Track(name: "Rap Protester a", id: "6CCIqr8xROr3jTnXf4GI3B", album: Album(artists: [Artist(name: "Le Char", id: "09hVIj6vWgoCDtT03h8ZCa", uri: "artist:URI")], name: "Fake Album ", id: "1p12OAWwudgMqfMzjMvl2a", images: [SpotifyImage(url: "https://i.scdn.co/image/ab67616d00004851f38c6b37a21334e22005b1f7", height: 64, width: 64)], uri: "spotify:album:1p12OAWwudgMqfMzjMvl2a"), artists: [Artist(name: "Le Char ", id: "09hVIj6vWgoCDtT03h8ZCa", uri: "spotify:artist:09hVIj6vWgoCDtT03h8ZCa")], uri: "spotify:track:6CCIqr8xROr3jTnXf4GI3B", preview_url: "https://p.scdn.co/mp3-preview/8ca060b3fa2f75ce0f1889f38fdc8562a763b801?cid=f050ee486c4f4ceeb53fd54ab2d3cedb")
+
+
+let blank1 = Track(name: "Rap Protester asldkfjhasldkfhas ldkfjhas lakjsdo", id: "6CCIqr8xROr3jTnXf4GI3B", album: Album(artists: [Artist(name: "Le Char", id: "09hVIj6vWgoCDtT03h8ZCa", uri: "artist:URI")], name: "Fake Album Namea lkjsd alskhfda  qqqq qq qwe ksljfh", id: "1p12OAWwudgMqfMzjMvl2a", images: [SpotifyImage(url: "https://i.scdn.co/image/ab67616d00004851f38c6b37a21334e22005b1f7", height: 64, width: 64)], uri: "spotify:album:1p12OAWwudgMqfMzjMvl2a"), artists: [Artist(name: "Le Char asdf asdlkfjha sdkfjhas lkjfhasd lkfjhd sklfhd lkfjhf lkasdjf hlasdkjfh ", id: "09hVIj6vWgoCDtT03h8ZCa", uri: "spotify:artist:09hVIj6vWgoCDtT03h8ZCa")], uri: "spotify:track:6CCIqr8xROr3jTnXf4GI3B", preview_url: "https://p.scdn.co/mp3-preview/8ca060b3fa2f75ce0f1889f38fdc8562a763b801?cid=f050ee486c4f4ceeb53fd54ab2d3cedb")
+
+
+#Preview {
+    TrackView(track: blank1)
 }
