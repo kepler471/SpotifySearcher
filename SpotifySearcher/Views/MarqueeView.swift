@@ -101,7 +101,7 @@ struct MarqueeView: View {
                     angle += LEFT_PAD + (textSize.width - MAX_LINK_WIDTH) / 2
                 }
                 
-                if textSize.width > MAX_LINK_WIDTH {
+                if marquee, textSize.width > MAX_LINK_WIDTH {
                     withAnimation {
                         self.moveText.toggle()
                     }
