@@ -10,10 +10,13 @@ import Cocoa
 import Security
 
 class Auth: ObservableObject {
+
+    @Published var accessToken: String = ""
     
-    let clientID: String = "69998477e18a484bb6402cf614942a47"
-    
-    let clientSecret: String = "efcd5764d5ed47c1bf6e667af0d083ad"
+    var clientID: String = ""
+    var clientSecret: String = ""
+    var code: String = ""
+    var refreshToken: String = ""
     
     private let REQUESTED_SCOPES = [
         "user-read-currently-playing",
@@ -25,17 +28,14 @@ class Auth: ObservableObject {
     
     let redirectURI = "spotify-api-example-app://login-callback"
     
-    var code: String = ""
-    
-    @Published var accessToken: String = ""
-    
-    var refreshToken: String = ""
-    
     var expiresIn: Int = 3600
     
     var timer: Timer?
     
     init() {
+        self.clientID = retrieveFromKeychain(account: "com.kepler471.SpotifySearcher.clientID")!
+        self.clientSecret = retrieveFromKeychain(account: "com.kepler471.SpotifySearcher.clientSecret")!
+        
         DispatchQueue.main.async { [self] in
             timer = Timer.scheduledTimer(withTimeInterval: TimeInterval(expiresIn), repeats: true) { [self] _ in
                 refreshTheToken() { [self] result in
@@ -50,8 +50,8 @@ class Auth: ObservableObject {
         }
         
         if let token = retrieveFromKeychain(account: "com.kepler471.SpotifySearcher.refreshtoken") {
-            /// TODO: Can we store the expiresIn alongside the token?
-            /// Then we can check if we actually need to refresh or not
+            // TODO: Can we store the expiresIn alongside the token?
+            // Then we can check if we actually need to refresh or not
             DispatchQueue.main.async { [self] in
                 refreshToken = token
                 refreshTheToken() { [self] result in
