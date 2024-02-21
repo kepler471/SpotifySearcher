@@ -123,22 +123,7 @@ struct ContentView: View {
                 }
                 .tag(0)
                 
-//                List(searchResults.artists.items, id: \.id, selection: $selectionArtist) { artist in
-//                    ArtistView(artist: artist)
-//                }
-//                .tabItem {
-//                    Text("Artists")
-//                }
-//                .tag(1)
-//                
-//                List(searchResults.albums.items, id: \.id, selection: $selectionAlbum) { album in
-//                    let art = URL(string: album.images.last!.url)!
-//                    AlbumView(artists: album.artists, album: album, artwork: Artwork(url: art))
-//                }
-//                .tabItem {
-//                    Text("Albums")
-//                }
-//                .tag(2)
+                // TODO: Reimplement album and artist tabs
             }
             .onAppear {
                 NSEvent.addLocalMonitorForEvents(matching: .keyDown) { (aEvent) -> NSEvent? in
@@ -181,8 +166,7 @@ struct ContentView: View {
             }
             
             CurrentTrackView()
-                .padding([.leading, .bottom, .trailing])
-                .background(.purple)
+                .padding(.all)
         }
         //        .onKeyPress(.tab, action: {.handled}) // app level block of Tab usage
     }
