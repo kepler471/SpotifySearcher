@@ -21,59 +21,6 @@ struct HoverUnderlineModifier: ViewModifier {
     }
 }
 
-struct AlbumView: View {
-    let artists: [Artist]
-    let album: Album
-    let artwork: Artwork
-    
-    var body: some View {
-        HStack {
-            AsyncImage(url: artwork.url)
-            VStack(alignment: .leading) {
-                Link(album.name, destination: URL(string: album.uri)!)
-                    .font(.title)
-                    .modifier(HoverUnderlineModifier())
-                HStack {
-                    ForEach(artists, id: \.id) { artist in
-                        if artist.id != artists.last?.id {
-                            Link(artist.name + ",", destination: URL(string: artist.uri)!)
-                                .modifier(HoverUnderlineModifier())
-                        } else {
-                            Link(artist.name, destination: URL(string: artist.uri)!)
-                                .modifier(HoverUnderlineModifier())
-                        }
-                    }
-                }
-            }
-            Spacer()
-        }
-        .foregroundStyle(.secondary)
-        .listRowSeparator(.hidden)
-        .listItemTint(.monochrome)
-        .font(.title2)
-    }
-}
-
-struct ArtistView: View {
-    let artist: Artist
-    //    let artwork: Artwork
-    
-    var body: some View {
-        HStack {
-            //            AsyncImage(url: artwork.url)
-            //                .resizable()
-            //                .scaledToFit()
-            Link(artist.name, destination: URL(string: artist.uri)!)
-                .modifier(HoverUnderlineModifier())
-            Spacer()
-        }
-        .foregroundStyle(.secondary)
-        .listRowSeparator(.hidden)
-        .listItemTint(.monochrome)
-        .font(.title2)
-    }
-}
-
 struct CurrentTrackView: View {
     @EnvironmentObject var player: Player
     
@@ -90,32 +37,6 @@ struct CurrentTrackView: View {
                 Spacer()
             }
         }
-    }
-}
-
-struct PlayPauseButtonView: View {
-    @EnvironmentObject var player: Player
-    
-    var body: some View {
-        Button {
-            player.togglePlaying()
-        } label: {
-            player.isPlaying ? Image(systemName: "pause.fill") : Image(systemName: "play.fill")
-        }
-    }
-}
-
-struct AddToQueueButtonView: View {
-    @EnvironmentObject var auth: Auth
-    let track: Track
-    
-    var body: some View {
-        Button {
-            MySpotifyAPI.shared.addToQueue(accessToken: auth.accessToken, trackUri: track.uri) { _ in }
-        } label: {
-            Image(systemName: "text.badge.plus")
-        }
-        .keyboardShortcut("a")
     }
 }
 
