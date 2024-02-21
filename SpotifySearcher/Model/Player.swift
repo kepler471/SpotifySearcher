@@ -28,7 +28,7 @@ class Player: ObservableObject { // TODO: Change to session manager
     }
     
     func startTimer() {
-        print("⏰⏰ timer starter ⏰⏰")
+        print("⏰⏰ timer started ⏰⏰")
         DispatchQueue.main.async { [self] in
             timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { timer in
                 self.update()
@@ -38,6 +38,7 @@ class Player: ObservableObject { // TODO: Change to session manager
     
     func stopTimer() {
         if let timer {
+            print("⏰⏰ timer stopped ⏰⏰")
             timer.invalidate()
         }
     }
