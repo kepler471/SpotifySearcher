@@ -35,25 +35,18 @@ struct SpotifySearcherApp: App {
     
     var body: some Scene {
         Window("Home", id: "home") {
-//            PlaceholderView()
-            ContentView()
+            PlaceholderView()
+//            ContentView()
                 .environmentObject(auth)
                 .environmentObject(player)
                 .onAppear {
                     player.auth = auth
-//                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { NSApplication.shared.keyWindow?.close() }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) { NSApplication.shared.mainWindow?.close() }
                     hotkey.keyDownHandler = {
-                        if isMenuPresented {
-                            player.stopTimer()
-                        } else {
-                            player.startTimer()
-//                            player.update()
-                        }
-                        // TODO: Need to add this toggle for when the user clicks away or clicks the iconn
                         isMenuPresented.toggle()
                     }
                 }
-                .onOpenURL { url in // TODO: Move within ContentView
+                .onOpenURL { url in
                     // TODO: remove from this scope
                     if let code = auth.handleRedirectURL(url: url) {
                         auth.exchangeCode(code: code, clientId: auth.clientID, clientSecret: auth.clientSecret, redirectUri: auth.redirectURI) { result in
@@ -76,14 +69,35 @@ struct SpotifySearcherApp: App {
         }
         
         MenuBarExtra("SpotifySearcher", systemImage: "music.note.list") {
-            ContentView()
-                .environmentObject(auth)
-                .environmentObject(player)
-                .onAppear {
-                    player.auth = auth
-                    player.startTimer()
-                }
-//                .frame(width: 600, height: 600)
+            // TODO: add player timer pause toggle
+            if #available(macOS 14.0, *) {
+                ContentView()
+                    .environmentObject(auth)
+                    .environmentObject(player)
+                    .onAppear {
+                        player.auth = auth
+                        player.startTimer()
+                    }
+                    .frame(width: 800, height: 600)
+            } else if #available(macOS 13.0, *) {
+                ContentView()
+                    .environmentObject(auth)
+                    .environmentObject(player)
+                    .onAppear {
+                        player.auth = auth
+                        player.startTimer()
+                    }
+                    .frame(width: 800, height: 600)
+            } else {
+                ContentView()
+                    .environmentObject(auth)
+                    .environmentObject(player)
+                    .onAppear {
+                        player.auth = auth
+                        player.startTimer()
+                    }
+                    .frame(width: 800, height: 600)
+            }
         }
         .menuBarExtraStyle(.window)
         .menuBarExtraAccess(isPresented: $isMenuPresented)
