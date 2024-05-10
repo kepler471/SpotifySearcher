@@ -10,6 +10,8 @@
 		65409E9E2B69664000C880EF /* Keys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65409E9D2B69664000C880EF /* Keys.swift */; };
 		65409EA32B69E79200C880EF /* HotKey in Frameworks */ = {isa = PBXBuildFile; productRef = 65409EA22B69E79200C880EF /* HotKey */; };
 		6568C3F32B6F24D400ABD1DA /* MenuBarExtraAccess in Frameworks */ = {isa = PBXBuildFile; productRef = 6568C3F22B6F24D400ABD1DA /* MenuBarExtraAccess */; };
+		6569C6882B84F17F00C41CC4 /* TrackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6569C6872B84F17F00C41CC4 /* TrackView.swift */; };
+		6569C68C2B8522F900C41CC4 /* LikeButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6569C68B2B8522F900C41CC4 /* LikeButtonView.swift */; };
 		659B441D2B518ED000B74938 /* SpotifySearcherApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 659B441C2B518ED000B74938 /* SpotifySearcherApp.swift */; };
 		659B441F2B518ED000B74938 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 659B441E2B518ED000B74938 /* ContentView.swift */; };
 		659B44212B518ED100B74938 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 659B44202B518ED100B74938 /* Assets.xcassets */; };
@@ -18,6 +20,10 @@
 		659B44392B518ED200B74938 /* SpotifySearcherUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 659B44382B518ED200B74938 /* SpotifySearcherUITests.swift */; };
 		659B443B2B518ED200B74938 /* SpotifySearcherUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 659B443A2B518ED200B74938 /* SpotifySearcherUITestsLaunchTests.swift */; };
 		65B19E4F2B70784300371B84 /* MarqueeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B19E4E2B70784300371B84 /* MarqueeView.swift */; };
+		65EDBF442B856963008EBA06 /* AlbumView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65EDBF432B856963008EBA06 /* AlbumView.swift */; };
+		65EDBF462B85697E008EBA06 /* ArtistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65EDBF452B85697E008EBA06 /* ArtistView.swift */; };
+		65EDBF482B8569A1008EBA06 /* PlayPauseButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65EDBF472B8569A1008EBA06 /* PlayPauseButtonView.swift */; };
+		65EDBF4A2B8569B9008EBA06 /* AddToQueueButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65EDBF492B8569B9008EBA06 /* AddToQueueButtonView.swift */; };
 		65F059B82B5D4DA900B5B6D7 /* Spotify.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65F059B72B5D4DA900B5B6D7 /* Spotify.swift */; };
 		65F059BE2B5EBEF800B5B6D7 /* MediaViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65F059BD2B5EBEF800B5B6D7 /* MediaViews.swift */; };
 		65FE45702B681E200050C3C9 /* Auth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65FE456F2B681E200050C3C9 /* Auth.swift */; };
@@ -42,8 +48,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		653305BA2B58C81900FE86B8 /* AuthTest.playground */ = {isa = PBXFileReference; lastKnownFileType = file.playground; name = AuthTest.playground; path = SpotifySearcher/AuthTest.playground; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		65409E9D2B69664000C880EF /* Keys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keys.swift; sourceTree = "<group>"; };
+		6569C6872B84F17F00C41CC4 /* TrackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackView.swift; sourceTree = "<group>"; };
+		6569C68B2B8522F900C41CC4 /* LikeButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikeButtonView.swift; sourceTree = "<group>"; };
 		659B44192B518ED000B74938 /* SpotifySearcher.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpotifySearcher.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		659B441C2B518ED000B74938 /* SpotifySearcherApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifySearcherApp.swift; sourceTree = "<group>"; };
 		659B441E2B518ED000B74938 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -58,8 +65,11 @@
 		65A5D0C12B5321AC00FA102C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		65B19E4E2B70784300371B84 /* MarqueeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarqueeView.swift; sourceTree = "<group>"; };
 		65C59AFE2B6D447700CBB917 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		65EDBF432B856963008EBA06 /* AlbumView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumView.swift; sourceTree = "<group>"; };
+		65EDBF452B85697E008EBA06 /* ArtistView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistView.swift; sourceTree = "<group>"; };
+		65EDBF472B8569A1008EBA06 /* PlayPauseButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayPauseButtonView.swift; sourceTree = "<group>"; };
+		65EDBF492B8569B9008EBA06 /* AddToQueueButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddToQueueButtonView.swift; sourceTree = "<group>"; };
 		65F059B72B5D4DA900B5B6D7 /* Spotify.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spotify.swift; sourceTree = "<group>"; };
-		65F059B92B5D6FFA00B5B6D7 /* SwiftLearning.playground */ = {isa = PBXFileReference; lastKnownFileType = file.playground; path = SwiftLearning.playground; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		65F059BD2B5EBEF800B5B6D7 /* MediaViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaViews.swift; sourceTree = "<group>"; };
 		65FE456F2B681E200050C3C9 /* Auth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Auth.swift; sourceTree = "<group>"; };
 		65FE45712B681E520050C3C9 /* Player.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
@@ -95,8 +105,6 @@
 		659B44102B518ED000B74938 = {
 			isa = PBXGroup;
 			children = (
-				65F059B92B5D6FFA00B5B6D7 /* SwiftLearning.playground */,
-				653305BA2B58C81900FE86B8 /* AuthTest.playground */,
 				659B441B2B518ED000B74938 /* SpotifySearcher */,
 				659B442D2B518ED200B74938 /* SpotifySearcherTests */,
 				659B44372B518ED200B74938 /* SpotifySearcherUITests */,
@@ -126,7 +134,6 @@
 				659B44222B518ED100B74938 /* Preview Content */,
 				65FE456F2B681E200050C3C9 /* Auth.swift */,
 				65409E9D2B69664000C880EF /* Keys.swift */,
-				65B19E4E2B70784300371B84 /* MarqueeView.swift */,
 			);
 			path = SpotifySearcher;
 			sourceTree = "<group>";
@@ -156,11 +163,26 @@
 			path = SpotifySearcherUITests;
 			sourceTree = "<group>";
 		};
+		65EDBF422B854735008EBA06 /* Buttons */ = {
+			isa = PBXGroup;
+			children = (
+				6569C68B2B8522F900C41CC4 /* LikeButtonView.swift */,
+				65EDBF472B8569A1008EBA06 /* PlayPauseButtonView.swift */,
+				65EDBF492B8569B9008EBA06 /* AddToQueueButtonView.swift */,
+			);
+			path = Buttons;
+			sourceTree = "<group>";
+		};
 		65F059BC2B5EBECB00B5B6D7 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				65EDBF432B856963008EBA06 /* AlbumView.swift */,
+				65EDBF452B85697E008EBA06 /* ArtistView.swift */,
 				659B441E2B518ED000B74938 /* ContentView.swift */,
+				65B19E4E2B70784300371B84 /* MarqueeView.swift */,
 				65F059BD2B5EBEF800B5B6D7 /* MediaViews.swift */,
+				6569C6872B84F17F00C41CC4 /* TrackView.swift */,
+				65EDBF422B854735008EBA06 /* Buttons */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -315,12 +337,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				65EDBF442B856963008EBA06 /* AlbumView.swift in Sources */,
+				65EDBF4A2B8569B9008EBA06 /* AddToQueueButtonView.swift in Sources */,
 				65FE45702B681E200050C3C9 /* Auth.swift in Sources */,
+				65EDBF482B8569A1008EBA06 /* PlayPauseButtonView.swift in Sources */,
 				65409E9E2B69664000C880EF /* Keys.swift in Sources */,
 				65F059B82B5D4DA900B5B6D7 /* Spotify.swift in Sources */,
 				65F059BE2B5EBEF800B5B6D7 /* MediaViews.swift in Sources */,
+				65EDBF462B85697E008EBA06 /* ArtistView.swift in Sources */,
+				6569C6882B84F17F00C41CC4 /* TrackView.swift in Sources */,
 				659B441F2B518ED000B74938 /* ContentView.swift in Sources */,
 				65FE45722B681E520050C3C9 /* Player.swift in Sources */,
+				6569C68C2B8522F900C41CC4 /* LikeButtonView.swift in Sources */,
 				659B441D2B518ED000B74938 /* SpotifySearcherApp.swift in Sources */,
 				65B19E4F2B70784300371B84 /* MarqueeView.swift in Sources */,
 			);
