@@ -2,6 +2,9 @@
 
 Spotify search app for the macOS (13.0+) desktop.
 
+<img width="1156" alt="Screenshot 2024-09-23 at 13 22 08" src="https://github.com/user-attachments/assets/69b00f36-01d9-4879-a1ca-5298b59c1aff">
+
+
 ## Overview
 
 This app is intended for macOS desktop Spotify users, to allow easier access to Spotify for those who do not want to switch focus from their current app. The main app interface is a menu bar drop down (popover) window, that can be opened by clicking on the icon or through a global keyboard shortcut.
