@@ -130,6 +130,18 @@ struct MarqueeView: View {
     }
 }
 
-#Preview {
-    MarqueeView(blank1, linkType: .artists, marquee: true)
+#Preview("Marquee with Artists") {
+    MarqueeView(PreviewData.track3, linkType: .artists, marquee: true)
+}
+
+#Preview("Marquee with Track Name") {
+    MarqueeView(PreviewData.track3, linkType: .track, marquee: true)
+}
+
+#Preview("Marquee with Album Name") {
+    MarqueeView(PreviewData.track3, linkType: .album, marquee: true)
+}
+
+#Preview("Standard View (No Marquee)") {
+    MarqueeView(PreviewData.track1, linkType: .track, marquee: false)
 }

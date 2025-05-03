@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		652CD6B22DC6CBF800F94D59 /* ExampleTracks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 652CD6B12DC6CBF800F94D59 /* ExampleTracks.swift */; };
 		65409E9E2B69664000C880EF /* Keys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65409E9D2B69664000C880EF /* Keys.swift */; };
 		65409EA32B69E79200C880EF /* HotKey in Frameworks */ = {isa = PBXBuildFile; productRef = 65409EA22B69E79200C880EF /* HotKey */; };
 		6568C3F32B6F24D400ABD1DA /* MenuBarExtraAccess in Frameworks */ = {isa = PBXBuildFile; productRef = 6568C3F22B6F24D400ABD1DA /* MenuBarExtraAccess */; };
@@ -48,6 +49,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		652CD6B12DC6CBF800F94D59 /* ExampleTracks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleTracks.swift; sourceTree = "<group>"; };
 		65409E9D2B69664000C880EF /* Keys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keys.swift; sourceTree = "<group>"; };
 		6569C6872B84F17F00C41CC4 /* TrackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackView.swift; sourceTree = "<group>"; };
 		6569C68B2B8522F900C41CC4 /* LikeButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikeButtonView.swift; sourceTree = "<group>"; };
@@ -191,6 +193,7 @@
 		65FE456E2B61411A0050C3C9 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				652CD6B12DC6CBF800F94D59 /* ExampleTracks.swift */,
 				65FE45712B681E520050C3C9 /* Player.swift */,
 				65F059B72B5D4DA900B5B6D7 /* Spotify.swift */,
 			);
@@ -348,6 +351,7 @@
 				6569C6882B84F17F00C41CC4 /* TrackView.swift in Sources */,
 				659B441F2B518ED000B74938 /* ContentView.swift in Sources */,
 				65FE45722B681E520050C3C9 /* Player.swift in Sources */,
+				652CD6B22DC6CBF800F94D59 /* ExampleTracks.swift in Sources */,
 				6569C68C2B8522F900C41CC4 /* LikeButtonView.swift in Sources */,
 				659B441D2B518ED000B74938 /* SpotifySearcherApp.swift in Sources */,
 				65B19E4F2B70784300371B84 /* MarqueeView.swift in Sources */,

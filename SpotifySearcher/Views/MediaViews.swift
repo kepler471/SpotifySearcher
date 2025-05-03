@@ -40,6 +40,25 @@ struct CurrentTrackView: View {
     }
 }
 
+#Preview("Current Track View - With Track") {
+    let mockPlayer = PreviewData.MockPlayer()
+    mockPlayer.currentTrack = PreviewData.track3
+    mockPlayer.isPlaying = true
+    
+    return CurrentTrackView()
+        .environmentObject(mockPlayer as Player)
+        .environmentObject(PreviewData.MockAuth() as Auth)
+}
+
+#Preview("Current Track View - No Track") {
+    let mockPlayer = PreviewData.MockPlayer()
+    mockPlayer.currentTrack = nil
+    
+    return CurrentTrackView()
+        .environmentObject(mockPlayer as Player)
+        .environmentObject(PreviewData.MockAuth() as Auth)
+}
+
 struct PreviewView: View {
     @State private var player: AVPlayer?
     @State private var volume: Double = 1.0
@@ -73,4 +92,12 @@ struct PreviewView: View {
             Text("No Preview found for this track")
         }
     }
+}
+
+#Preview("Preview View - With Preview URL") {
+    PreviewView(track: PreviewData.track1)
+}
+
+#Preview("Preview View - Without Preview URL") {
+    PreviewView(track: PreviewData.trackNoPreview)
 }

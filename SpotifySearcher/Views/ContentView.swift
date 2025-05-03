@@ -200,8 +200,23 @@ func sendAppleScriptCommand(id: URL) {
     }
 }
 
-//#Preview {
-////    ContentView().environment(Auth())
-////    ContentView()
-//    TestKeysView()
-//}
+// Extension to create a ContentView with initial data for previews
+extension ContentView {
+    static func previewWithSearchResults() -> some View {
+        let mockAuth = PreviewData.MockAuth()
+        let mockPlayer = PreviewData.MockPlayer()
+        
+        var contentView = ContentView()
+        
+        // This initializes the ContentView as if it already had search results
+        // Note: This is for preview purposes only, and sets initial state that would normally
+        // come from API calls in the real app
+        return contentView
+            .environmentObject(mockAuth as Auth)
+            .environmentObject(mockPlayer as Player)
+    }
+}
+
+#Preview("Content View") {
+    ContentView.previewWithSearchResults()
+}

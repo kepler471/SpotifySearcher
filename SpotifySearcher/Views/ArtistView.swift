@@ -27,6 +27,10 @@ struct ArtistView: View {
     }
 }
 
-//#Preview {
-//    ArtistView()
-//}
+#Preview("Artist View") {
+    ArtistView(artist: PreviewData.artist1)
+}
+
+#Preview("Artist with Long Name") {
+    ArtistView(artist: PreviewData.artist2)
+}

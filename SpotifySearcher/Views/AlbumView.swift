@@ -40,6 +40,18 @@ struct AlbumView: View {
     }
 }
 
-//#Preview {
-//    AlbumView()
-//}
+#Preview("Album View") {
+    AlbumView(
+        artists: PreviewData.album1.artists,
+        album: PreviewData.album1,
+        artwork: PreviewData.artwork
+    )
+}
+
+#Preview("Album with Multiple Artists") {
+    AlbumView(
+        artists: PreviewData.album2.artists,
+        album: PreviewData.album2,
+        artwork: PreviewData.artwork
+    )
+}

@@ -19,6 +19,18 @@ struct PlayPauseButtonView: View {
     }
 }
 
-#Preview {
-    PlayPauseButtonView()
+#Preview("Play Button") {
+    let mockPlayer = PreviewData.MockPlayer()
+    mockPlayer.isPlaying = false
+    
+    return PlayPauseButtonView()
+        .environmentObject(mockPlayer as Player)
+}
+
+#Preview("Pause Button") {
+    let mockPlayer = PreviewData.MockPlayer()
+    mockPlayer.isPlaying = true
+    
+    return PlayPauseButtonView()
+        .environmentObject(mockPlayer as Player)
 }

@@ -50,6 +50,13 @@ struct AddToQueueButtonView: View {
     }
 }
 
-#Preview {
-    AddToQueueButtonView(track: blank0)
+#Preview("Add To Queue Button") {
+    AddToQueueButtonView(track: PreviewData.track1)
+        .environmentObject(PreviewData.MockAuth() as Auth)
+}
+
+#Preview("Add To Queue - Loading State") {
+    AddToQueueButtonView(track: PreviewData.track1)
+        .environmentObject(PreviewData.MockAuth() as Auth)
+        // For a real implementation, we'd need a way to trigger the isAdding state
 }

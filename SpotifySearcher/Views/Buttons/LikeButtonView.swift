@@ -12,6 +12,14 @@ struct LikeButtonView: View {
     @EnvironmentObject var player: Player
     @State var isSaved: Bool = false
     
+    // Default initializer
+    init() {}
+    
+    // Special initializer for previews with initial like state
+    init(isInitiallyLiked: Bool) {
+        self._isSaved = State(initialValue: isInitiallyLiked)
+    }
+    
     var body: some View {
         
 //        VStack {
@@ -51,10 +59,15 @@ struct LikeButtonView: View {
                 }
             }
         } label: {
-            isSaved ? Image(systemName: "heart.fill") : Image(systemName: "heart")
+            if isSaved {
+                Image(systemName: "heart.fill")
+                    .foregroundStyle(.red)
+            } else {
+                Image(systemName: "heart")
+            }
         }
         .scaleEffect(1)
-        .animation(.linear(duration: 1), value: 1)
+        .animation(.linear(duration: 1), value: isSaved)
         .onReceive(player.$currentTrack) { track in
             guard let trackId = player.currentTrack?.id else { return }
             
@@ -76,6 +89,20 @@ struct LikeButtonView: View {
 }
 
 
-#Preview {
-    LikeButtonView()
+#Preview("Like Button - Not Liked") {
+    let mockPlayer = PreviewData.MockPlayer()
+    mockPlayer.currentTrack = PreviewData.track1
+    
+    return LikeButtonView(isInitiallyLiked: false)
+        .environmentObject(mockPlayer as Player)
+        .environmentObject(PreviewData.MockAuth() as Auth)
+}
+
+#Preview("Like Button - Liked") {
+    let mockPlayer = PreviewData.MockPlayer()
+    mockPlayer.currentTrack = PreviewData.track1
+    
+    return LikeButtonView(isInitiallyLiked: true)
+        .environmentObject(mockPlayer as Player)
+        .environmentObject(PreviewData.MockAuth() as Auth)
 }
