@@ -80,13 +80,15 @@ class Auth: ObservableObject {
             URLQueryItem(name: "response_type", value: "code"),
             URLQueryItem(name: "client_id", value: clientID),
             URLQueryItem(name: "scope", value: REQUESTED_SCOPES),
-            //    URLQueryItem(name: "redirect_uri", value: "http://localhost:8081/callback")
             URLQueryItem(name: "redirect_uri", value: redirectURI)
         ]
         
-        components.url?.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
-        
-        if let url = components.url {
+        // Ensure our URL is properly constructed and encoded
+        if let urlString = components.url?.absoluteString,
+           let encodedURL = URL(string: urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? urlString) {
+            NSWorkspace.shared.open(encodedURL)
+        } else if let url = components.url {
+            // Fallback to non-explicitly encoded URL (URLComponents does some encoding automatically)
             NSWorkspace.shared.open(url)
         } else {
             print("<<<Auth>>> Auth URL for code retrieval was not valid!!")

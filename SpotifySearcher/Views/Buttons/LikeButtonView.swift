@@ -21,34 +21,53 @@ struct LikeButtonView: View {
 //        }.accentColor(Color(.systemPink))
         
         Button {
+            guard let trackId = player.currentTrack?.id else { return }
+            
             if isSaved {
-                MySpotifyAPI.shared.removeTracksFromLibrary(accessToken: auth.accessToken, trackIds: [player.currentTrack!.id]) { error in
-                    if let error {
-                        print("<<<Like>>> 💔 Error trying to remove track from library: \(error)")
+                // Remove from library
+                MySpotifyAPI.shared.removeTracksFromLibrary(accessToken: auth.accessToken, trackIds: [trackId]) { result in
+                    switch result {
+                    case .success:
+                        DispatchQueue.main.async {
+                            self.isSaved = false
+                        }
+                    case .failure(let error):
+                        print("<<<Like>>> 💔 Error trying to remove track from library: \(error.localizedDescription)")
+                        // Do not toggle state if the API call failed
                     }
                 }
             } else {
-                MySpotifyAPI.shared.saveTracksToLibrary(accessToken: auth.accessToken, trackIds: [player.currentTrack!.id]) { error in
-                    if let error {
-                        print("<<<Like>>> ❤️ Error trying to save track to library: \(error)")
+                // Add to library
+                MySpotifyAPI.shared.saveTracksToLibrary(accessToken: auth.accessToken, trackIds: [trackId]) { result in
+                    switch result {
+                    case .success:
+                        DispatchQueue.main.async {
+                            self.isSaved = true
+                        }
+                    case .failure(let error):
+                        print("<<<Like>>> ❤️ Error trying to save track to library: \(error.localizedDescription)")
+                        // Do not toggle state if the API call failed
                     }
                 }
             }
-            isSaved.toggle()
         } label: {
             isSaved ? Image(systemName: "heart.fill") : Image(systemName: "heart")
         }
-//        .foregroundStyle(.red)
-//        .backgroundStyle(.blue)
-//        .tint(.purple)
         .scaleEffect(1)
         .animation(.linear(duration: 1), value: 1)
-        .onReceive(player.$currentTrack) { _ in
-            MySpotifyAPI.shared.checkSaved(accessToken: auth.accessToken, type: "track", Ids: [player.currentTrack!.id]) { result, error  in
-                if let error {
-                    print("<<<Like>>> 🔎❤️ Error checking if track is saved in Library: \(error)")
-                } else if let result {
-                    isSaved = result.first!
+        .onReceive(player.$currentTrack) { track in
+            guard let trackId = player.currentTrack?.id else { return }
+            
+            MySpotifyAPI.shared.checkSaved(accessToken: auth.accessToken, type: "track", ids: [trackId]) { result in
+                switch result {
+                case .success(let savedStatus):
+                    if let isSaved = savedStatus.first {
+                        DispatchQueue.main.async {
+                            self.isSaved = isSaved
+                        }
+                    }
+                case .failure(let error):
+                    print("<<<Like>>> 🔎❤️ Error checking if track is saved in Library: \(error.localizedDescription)")
                 }
             }
         }

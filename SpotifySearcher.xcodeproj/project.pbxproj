@@ -105,6 +105,7 @@
 		659B44102B518ED000B74938 = {
 			isa = PBXGroup;
 			children = (
+				65C59AFE2B6D447700CBB917 /* README.md */,
 				659B441B2B518ED000B74938 /* SpotifySearcher */,
 				659B442D2B518ED200B74938 /* SpotifySearcherTests */,
 				659B44372B518ED200B74938 /* SpotifySearcherUITests */,
@@ -192,7 +193,6 @@
 			children = (
 				65FE45712B681E520050C3C9 /* Player.swift */,
 				65F059B72B5D4DA900B5B6D7 /* Spotify.swift */,
-				65C59AFE2B6D447700CBB917 /* README.md */,
 			);
 			path = Model;
 			sourceTree = "<group>";

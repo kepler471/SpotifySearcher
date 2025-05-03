@@ -57,11 +57,17 @@ struct ContentView: View {
                 .padding(.top)
                 .focused($focusZone, equals: .textField)
                 .onSubmit {
-                    MySpotifyAPI.shared.searchSpotify(accessToken: auth.accessToken, query: inputText) { results in
-                        searchResults = results
-                        if let firstTrackId = searchResults.tracks.items.first?.id {
-                            selection = firstTrackId
-                            focusZone = .itemList
+                    MySpotifyAPI.shared.searchSpotify(accessToken: auth.accessToken, query: inputText) { result in
+                        switch result {
+                        case .success(let results):
+                            searchResults = results
+                            if let firstTrackId = searchResults.tracks.items.first?.id {
+                                selection = firstTrackId
+                                focusZone = .itemList
+                            }
+                        case .failure(let error):
+                            print("Search failed: \(error.localizedDescription)")
+                            // Could show an error message to the user here
                         }
                     }
                 }
