@@ -8,6 +8,11 @@
 import Foundation
 import AppKit
 
+/// Manages Spotify playback and track status
+///
+/// The Player class serves as a bridge between the UI and the Spotify API,
+/// handling playback control, track information updates, and fallback to
+/// AppleScript when API access is unavailable.
 class Player: ObservableObject { // TODO: Change to session manager
     
     // TODO: If not authorised, can attempt osacript commands and updates?
@@ -15,15 +20,24 @@ class Player: ObservableObject { // TODO: Change to session manager
     
     // MARK: - Properties
     
+    /// The currently playing track, if any
     @Published var currentTrack: Track? = nil
+    
+    /// Whether playback is currently active
     @Published var isPlaying: Bool = false
     
+    /// Reference to the authentication manager
     var auth: Auth?
+    
+    /// Whether the player is connected to Spotify
     var connected: Bool = false
+    
+    /// Timer for periodic status updates
     var timer: Timer?
 
     // MARK: - Initialization
     
+    /// Initialize the Player
     init() {
         print("⏰ Player INITIALISED ⏰")
     }
@@ -31,11 +45,20 @@ class Player: ObservableObject { // TODO: Change to session manager
     // MARK: - Utility Methods
     
     /// Creates a Spotify URI from an ID and type
+    ///
+    /// - Parameters:
+    ///   - trackId: The Spotify ID of the item
+    ///   - type: The type of item (track, album, artist, etc.)
+    /// - Returns: A URL containing the Spotify URI
     private func makeURI(trackId: String, type: String) -> URL {
         return URL(string: "spotify:\(type):\(trackId)")!
     }
     
     /// Sends an AppleScript command to control Spotify
+    ///
+    /// Used as a fallback when the API is unavailable.
+    ///
+    /// - Parameter id: The Spotify URI to play
     private func sendAppleScriptCommand(id: URL) {
         let command = """
         tell application "Spotify"
@@ -50,6 +73,10 @@ class Player: ObservableObject { // TODO: Change to session manager
         task.launch()
     }
     
+    /// Starts the timer for periodic status updates
+    ///
+    /// The timer runs every 2 seconds and updates the current track
+    /// and playback status by calling the Spotify API.
     func startTimer() {
         print("⏰⏰ timer started ⏰⏰")
         DispatchQueue.main.async { [self] in
@@ -59,6 +86,7 @@ class Player: ObservableObject { // TODO: Change to session manager
         }
     }
     
+    /// Stops the status update timer
     func stopTimer() {
         if let timer {
             print("⏰⏰ timer stopped ⏰⏰")
@@ -66,6 +94,17 @@ class Player: ObservableObject { // TODO: Change to session manager
         }
     }
     
+    /// Starts or resumes playback
+    ///
+    /// This method can:
+    /// 1. Start playback of specific tracks via the API
+    /// 2. Resume playback of the current track via the API
+    /// 3. Fall back to AppleScript if API access is unavailable
+    ///
+    /// - Parameters:
+    ///   - trackIds: Optional array of track IDs to play
+    ///   - type: Optional item type (track, album, etc.)
+    ///   - contextUri: Optional context URI (album, playlist) to play from
     func startPlayback(trackIds: [String]? = nil, type: String? = nil, contextUri: URL? = nil) {
         if let auth, connected {
             if let trackIds {
@@ -103,6 +142,10 @@ class Player: ObservableObject { // TODO: Change to session manager
         return
     }
     
+    /// Toggles playback between playing and paused states
+    ///
+    /// If playing, pauses playback. If paused, resumes playback.
+    /// Also handles state updates and timer management.
     func togglePlaying() {
         if let auth, connected {
             // Stop timer to avoid conflicting state updates
@@ -140,6 +183,10 @@ class Player: ObservableObject { // TODO: Change to session manager
         }
     }
     
+    /// Updates the current track and playback status
+    ///
+    /// Calls the Spotify API to get the currently playing track and updates
+    /// the published properties with the latest information.
     func update() {
         if let auth {
             MySpotifyAPI.shared.getCurrentTrack(accessToken: auth.accessToken) { [weak self] result in

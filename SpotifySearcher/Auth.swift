@@ -9,15 +9,39 @@ import Foundation
 import Cocoa
 import Security
 
+/// Manages Spotify authentication via OAuth 2.0
+///
+/// This class handles the entire OAuth flow with Spotify, including:
+/// - Initializing the authorization process
+/// - Handling the redirect with the authorization code
+/// - Exchanging the code for access and refresh tokens
+/// - Refreshing tokens when they expire
+/// - Securely storing tokens in Keychain
 class Auth: ObservableObject {
 
+    /// The current access token used for API requests
     @Published var accessToken: String = ""
     
+    /// Spotify application client ID
     var clientID: String = ""
+    
+    /// Spotify application client secret
     var clientSecret: String = ""
+    
+    /// Authorization code returned from the OAuth authorization request
     var code: String = ""
+    
+    /// OAuth refresh token for obtaining new access tokens
     var refreshToken: String = ""
     
+    /// OAuth scopes requested for the application
+    ///
+    /// These determine what permissions the application has with the Spotify API:
+    /// - user-read-currently-playing: View what's currently playing
+    /// - user-read-playback-state: View playback state (device, shuffle, repeat, etc.)
+    /// - user-modify-playback-state: Control playback (play, pause, skip, etc.)
+    /// - user-library-modify: Add/remove items from the user's library
+    /// - user-library-read: View the user's saved content
     private let REQUESTED_SCOPES = [
         "user-read-currently-playing",
         "user-read-playback-state",
@@ -26,16 +50,28 @@ class Auth: ObservableObject {
         "user-library-read",
     ].joined(separator: " ")
     
+    /// Redirect URI registered with Spotify for the OAuth flow
     let redirectURI = "spotify-api-example-app://login-callback"
     
+    /// Token expiration time in seconds (default: 1 hour)
     var expiresIn: Int = 3600
     
+    /// Timer for refreshing tokens before they expire
     var timer: Timer?
     
+    /// Initialize the Auth manager
+    ///
+    /// When created, Auth will:
+    /// 1. Retrieve credentials from Keychain
+    /// 2. Set up a timer to refresh the token before it expires
+    /// 3. If a refresh token exists in Keychain, use it to get a new access token
+    /// 4. If no refresh token exists, start the authorization flow
     init() {
+        // Retrieve credentials from the keychain
         self.clientID = retrieveFromKeychain(account: "com.kepler471.SpotifySearcher.clientID")!
         self.clientSecret = retrieveFromKeychain(account: "com.kepler471.SpotifySearcher.clientSecret")!
         
+        // Set up timer to refresh the token periodically
         DispatchQueue.main.async { [self] in
             timer = Timer.scheduledTimer(withTimeInterval: TimeInterval(expiresIn), repeats: true) { [self] _ in
                 refreshTheToken() { [self] result in
@@ -49,6 +85,7 @@ class Auth: ObservableObject {
             }
         }
         
+        // If we have a refresh token, use it to get a new access token
         if let token = retrieveFromKeychain(account: "com.kepler471.SpotifySearcher.refreshtoken") {
             // TODO: Can we store the expiresIn alongside the token?
             // Then we can check if we actually need to refresh or not
@@ -66,11 +103,16 @@ class Auth: ObservableObject {
             }
             
         } else {
+            // No refresh token found, start the authorization flow
             print("<<<Auth>>> 🔎🗝️🚫")
             authorizeInit()
         }
     }
     
+    /// Initiates the OAuth authorization flow
+    ///
+    /// Opens the Spotify authorization page in the default browser, where
+    /// the user can log in and grant permissions to the application.
     func authorizeInit() {
         
         var components = URLComponents(string: "https://accounts.spotify.com/authorize")!
@@ -95,6 +137,10 @@ class Auth: ObservableObject {
         }
     }
     
+    /// Response model for token exchange
+    ///
+    /// Contains the access token, refresh token, and expiration time
+    /// returned by Spotify during the authorization code exchange.
     struct SpotifyAuthResponse: Decodable {
         let accessToken: String
         let expiresIn: Int
@@ -107,6 +153,10 @@ class Auth: ObservableObject {
         }
     }
     
+    /// Response model for token refresh
+    ///
+    /// Contains the new access token and expiration time
+    /// returned by Spotify during a refresh token operation.
     struct SpotifyRefreshResponse: Decodable {
         let accessToken: String
         let expiresIn: Int
@@ -117,6 +167,13 @@ class Auth: ObservableObject {
         }
     }
     
+    /// Extracts the authorization code from a redirect URL
+    ///
+    /// When Spotify redirects back to the app after authorization,
+    /// this method extracts the authorization code from the URL.
+    ///
+    /// - Parameter url: The redirect URL from Spotify
+    /// - Returns: The authorization code, or nil if not found
     func handleRedirectURL(url: URL) -> String? {
         guard let components = URLComponents(url: url, resolvingAgainstBaseURL: true),
               let code = components.queryItems?.first(where: { $0.name == "code" })?.value else {
@@ -126,6 +183,17 @@ class Auth: ObservableObject {
         return code
     }
     
+    /// Exchanges the authorization code for access and refresh tokens
+    ///
+    /// After receiving the authorization code from the redirect,
+    /// this method exchanges it for an access token and refresh token.
+    ///
+    /// - Parameters:
+    ///   - code: The authorization code from Spotify
+    ///   - clientId: The Spotify application client ID
+    ///   - clientSecret: The Spotify application client secret
+    ///   - redirectUri: The registered redirect URI
+    ///   - completion: Callback with token response or error
     func exchangeCode(code: String, clientId: String, clientSecret: String, redirectUri: String, completion: @escaping (Result<SpotifyAuthResponse, Error>) -> Void) {
         
         let url = URL(string: "https://accounts.spotify.com/api/token")!
@@ -170,6 +238,12 @@ class Auth: ObservableObject {
         }.resume()
     }
     
+    /// Refreshes the access token using the refresh token
+    ///
+    /// When the access token expires, this method uses the refresh token
+    /// to obtain a new access token without requiring user interaction.
+    ///
+    /// - Parameter completion: Callback with refresh response or error
     func refreshTheToken(completion: @escaping (Result<SpotifyRefreshResponse, Error>) -> Void) {
         
         let url = URL(string: "https://accounts.spotify.com/api/token")!
@@ -213,6 +287,12 @@ class Auth: ObservableObject {
         }.resume()
     }
     
+    /// Saves a token to the Keychain
+    ///
+    /// - Parameters:
+    ///   - token: The token string to save
+    ///   - account: The account identifier for the token
+    /// - Returns: Boolean indicating success
     func saveToKeychain(token: String, account: String) -> Bool {
         /// TODO: Can we store the expiresIn alongside the token?
         /// Then we can check if we actually need to refresh or not
@@ -229,6 +309,10 @@ class Auth: ObservableObject {
         return status == errSecSuccess
     }
     
+    /// Retrieves a token from the Keychain
+    ///
+    /// - Parameter account: The account identifier for the token
+    /// - Returns: The token string, or nil if not found
     func retrieveFromKeychain(account: String) -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
