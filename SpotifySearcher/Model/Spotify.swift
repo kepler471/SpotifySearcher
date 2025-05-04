@@ -180,16 +180,27 @@ class MySpotifyAPI {
         case emptyResponse
     }
     
+    /// HTTP Methods enum
+    enum HTTPMethod: String {
+        case get = "GET"
+        case post = "POST"
+        case put = "PUT"
+        case delete = "DELETE"
+    }
+    
     // MARK: - Helper Methods
     
     /// Creates an authenticated URLRequest for the Spotify API
-    private func createRequest(path: String, method: String, accessToken: String) -> URLRequest? {
-        guard let url = URL(string: "\(baseUrl)\(path)") else {
+    private func createRequest(path: String, method: HTTPMethod, accessToken: String, queryItems: [URLQueryItem]? = nil) -> URLRequest? {
+        var components = URLComponents(string: "\(baseUrl)\(path)")
+        components?.queryItems = queryItems
+        
+        guard let url = components?.url else {
             return nil
         }
         
         var request = URLRequest(url: url)
-        request.httpMethod = method
+        request.httpMethod = method.rawValue
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         
         return request
@@ -205,24 +216,14 @@ class MySpotifyAPI {
         print("<<<API>>> \(function)\(details.isEmpty ? "" : "(\(details)"))")
     }
     
-    // MARK: - API Methods
-    
-    /// Search the Spotify catalog for tracks, artists, and albums
-    func searchSpotify(accessToken: String, query: String, completion: @escaping (Result<SpotifySearchResponse, Error>) -> Void) {
-        logAPICall(#function, details: query)
-        
-        // Encode query parameter
-        guard let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let url = URL(string: "\(baseUrl)/search?q=\(encodedQuery)&type=track%2Cartist%2Calbum&limit=20") else {
-            DispatchQueue.main.async {
-                completion(.failure(SpotifyAPIError.invalidURL))
-            }
-            return
-        }
-        
-        var request = URLRequest(url: url)
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        
+    // Generic method to perform a data task with a request
+    private func performRequest<T: Decodable>(
+        request: URLRequest,
+        expectingType: T.Type,
+        allowEmptyResponse: Bool = false,
+        successStatusCodes: Set<Int> = [200],
+        completion: @escaping (Result<T, Error>) -> Void
+    ) {
         session.dataTask(with: request) { [weak self] data, response, error in
             guard let self = self else { return }
             
@@ -242,8 +243,24 @@ class MySpotifyAPI {
                 return
             }
             
+            // Special case for 204 No Content when we allow empty responses
+            if allowEmptyResponse && httpResponse.statusCode == 204 {
+                // This requires T to be compatible with Void/()
+                // Typically used only when T is Void or an Optional/enum that can represent emptiness
+                DispatchQueue.main.async {
+                    if let emptyResult = () as? T {
+                        completion(.success(emptyResult))
+                    } else if T.self == CurrentTrackResult.self, let emptyResponse = CurrentTrackResult.emptyResponse as? T {
+                        completion(.success(emptyResponse))
+                    } else {
+                        completion(.failure(SpotifyAPIError.invalidResponse))
+                    }
+                }
+                return
+            }
+            
             // Check HTTP status code
-            guard httpResponse.statusCode == 200 else {
+            guard successStatusCodes.contains(httpResponse.statusCode) else {
                 DispatchQueue.main.async {
                     completion(.failure(SpotifyAPIError.httpError(httpResponse.statusCode)))
                 }
@@ -260,7 +277,7 @@ class MySpotifyAPI {
             
             // Decode response
             do {
-                let decodedResponse = try self.jsonDecoder.decode(SpotifySearchResponse.self, from: data)
+                let decodedResponse = try self.jsonDecoder.decode(T.self, from: data)
                 DispatchQueue.main.async {
                     completion(.success(decodedResponse))
                 }
@@ -272,17 +289,84 @@ class MySpotifyAPI {
         }.resume()
     }
     
-    /// Get the user's currently playing track
-    func getCurrentTrack(accessToken: String, completion: @escaping (Result<CurrentTrackResult, Error>) -> Void) {
-        logAPICall(#function)
+    // Generic method for API calls with empty (void) response
+    private func performEmptyResponseRequest(
+        request: URLRequest,
+        successStatusCodes: Set<Int> = [200, 201, 204],
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
+        session.dataTask(with: request) { data, response, error in
+            // Handle network error
+            if let error = error {
+                DispatchQueue.main.async {
+                    completion(.failure(SpotifyAPIError.networkError(error)))
+                }
+                return
+            }
+            
+            // Validate HTTP response
+            guard let httpResponse = response as? HTTPURLResponse else {
+                DispatchQueue.main.async {
+                    completion(.failure(SpotifyAPIError.invalidResponse))
+                }
+                return
+            }
+            
+            // Check HTTP status code
+            guard successStatusCodes.contains(httpResponse.statusCode) else {
+                DispatchQueue.main.async {
+                    completion(.failure(SpotifyAPIError.httpError(httpResponse.statusCode)))
+                }
+                return
+            }
+            
+            DispatchQueue.main.async {
+                completion(.success(()))
+            }
+        }.resume()
+    }
+    
+    // MARK: - API Methods
+    
+    /// Search the Spotify catalog for tracks, artists, and albums
+    func searchSpotify(accessToken: String, query: String, completion: @escaping (Result<SpotifySearchResponse, Error>) -> Void) {
+        logAPICall(#function, details: query)
         
-        guard let request = createRequest(path: "/me/player/currently-playing", method: "GET", accessToken: accessToken) else {
+        guard let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
             DispatchQueue.main.async {
                 completion(.failure(SpotifyAPIError.invalidURL))
             }
             return
         }
         
+        let queryItems = [
+            URLQueryItem(name: "q", value: encodedQuery),
+            URLQueryItem(name: "type", value: "track,artist,album"),
+            URLQueryItem(name: "limit", value: "20")
+        ]
+        
+        guard let request = createRequest(path: "/search", method: .get, accessToken: accessToken, queryItems: queryItems) else {
+            DispatchQueue.main.async {
+                completion(.failure(SpotifyAPIError.invalidURL))
+            }
+            return
+        }
+        
+        performRequest(request: request, expectingType: SpotifySearchResponse.self, completion: completion)
+    }
+    
+    /// Get the user's currently playing track
+    func getCurrentTrack(accessToken: String, completion: @escaping (Result<CurrentTrackResult, Error>) -> Void) {
+        logAPICall(#function)
+        
+        guard let request = createRequest(path: "/me/player/currently-playing", method: .get, accessToken: accessToken) else {
+            DispatchQueue.main.async {
+                completion(.failure(SpotifyAPIError.invalidURL))
+            }
+            return
+        }
+        
+        // Special handling for the nested enum result type
         session.dataTask(with: request) { [weak self] data, response, error in
             guard let self = self else { return }
             
@@ -341,7 +425,7 @@ class MySpotifyAPI {
     func startResumePlayback(accessToken: String, uris: [URL]? = nil, contextUri: URL? = nil, completion: @escaping (Result<Void, Error>) -> Void) {
         logAPICall(#function)
         
-        guard var request = createRequest(path: "/me/player/play", method: "PUT", accessToken: accessToken) else {
+        guard var request = createRequest(path: "/me/player/play", method: .put, accessToken: accessToken) else {
             DispatchQueue.main.async {
                 completion(.failure(SpotifyAPIError.invalidURL))
             }
@@ -361,39 +445,8 @@ class MySpotifyAPI {
         
         // Serialize body to JSON
         do {
-            let jsonData = try JSONSerialization.data(withJSONObject: body, options: [])
-            var mutableRequest = request
-            mutableRequest.httpBody = jsonData
-            
-            session.dataTask(with: mutableRequest) { data, response, error in
-                // Handle network error
-                if let error = error {
-                    DispatchQueue.main.async {
-                        completion(.failure(SpotifyAPIError.networkError(error)))
-                    }
-                    return
-                }
-                
-                // Validate HTTP response
-                guard let httpResponse = response as? HTTPURLResponse else {
-                    DispatchQueue.main.async {
-                        completion(.failure(SpotifyAPIError.invalidResponse))
-                    }
-                    return
-                }
-                
-                // Check HTTP status code
-                guard httpResponse.statusCode == 204 else {
-                    DispatchQueue.main.async {
-                        completion(.failure(SpotifyAPIError.httpError(httpResponse.statusCode)))
-                    }
-                    return
-                }
-                
-                DispatchQueue.main.async {
-                    completion(.success(()))
-                }
-            }.resume()
+            request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
+            performEmptyResponseRequest(request: request, completion: completion)
         } catch {
             DispatchQueue.main.async {
                 completion(.failure(error))
@@ -405,243 +458,88 @@ class MySpotifyAPI {
     func pausePlayback(accessToken: String, completion: @escaping (Result<Void, Error>) -> Void) {
         logAPICall(#function)
         
-        guard let request = createRequest(path: "/me/player/pause", method: "PUT", accessToken: accessToken) else {
+        guard let request = createRequest(path: "/me/player/pause", method: .put, accessToken: accessToken) else {
             DispatchQueue.main.async {
                 completion(.failure(SpotifyAPIError.invalidURL))
             }
             return
         }
         
-        session.dataTask(with: request) { data, response, error in
-            // Handle network error
-            if let error = error {
-                DispatchQueue.main.async {
-                    completion(.failure(SpotifyAPIError.networkError(error)))
-                }
-                return
-            }
-            
-            // Validate HTTP response
-            guard let httpResponse = response as? HTTPURLResponse else {
-                DispatchQueue.main.async {
-                    completion(.failure(SpotifyAPIError.invalidResponse))
-                }
-                return
-            }
-            
-            // Check HTTP status code
-            guard httpResponse.statusCode == 204 else {
-                DispatchQueue.main.async {
-                    completion(.failure(SpotifyAPIError.httpError(httpResponse.statusCode)))
-                }
-                return
-            }
-            
-            DispatchQueue.main.async {
-                completion(.success(()))
-            }
-        }.resume()
+        performEmptyResponseRequest(request: request, completion: completion)
     }
     
     /// Check if tracks are saved in the user's library
     func checkSaved(accessToken: String, type: String, ids: [String], completion: @escaping (Result<[Bool], Error>) -> Void) {
         logAPICall(#function, details: ids.joined(separator: ", "))
         
-        // Join IDs with comma separator
         let idsString = ids.joined(separator: ",")
-        guard let url = URL(string: "\(baseUrl)/me/\(type)s/contains?ids=\(idsString)") else {
+        let queryItems = [URLQueryItem(name: "ids", value: idsString)]
+        
+        guard let request = createRequest(path: "/me/\(type)s/contains", method: .get, accessToken: accessToken, queryItems: queryItems) else {
             DispatchQueue.main.async {
                 completion(.failure(SpotifyAPIError.invalidURL))
             }
             return
         }
         
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        
-        session.dataTask(with: request) { [weak self] data, response, error in
-            guard let self = self else { return }
-            
-            // Handle network error
-            if let error = error {
-                DispatchQueue.main.async {
-                    completion(.failure(SpotifyAPIError.networkError(error)))
-                }
-                return
-            }
-            
-            // Validate HTTP response
-            guard let httpResponse = response as? HTTPURLResponse else {
-                DispatchQueue.main.async {
-                    completion(.failure(SpotifyAPIError.invalidResponse))
-                }
-                return
-            }
-            
-            // Check HTTP status code
-            guard httpResponse.statusCode == 200 else {
-                DispatchQueue.main.async {
-                    completion(.failure(SpotifyAPIError.httpError(httpResponse.statusCode)))
-                }
-                return
-            }
-            
-            // Ensure data exists
-            guard let data = data else {
-                DispatchQueue.main.async {
-                    completion(.failure(SpotifyAPIError.noData))
-                }
-                return
-            }
-            
-            // Decode response
-            do {
-                let results = try self.jsonDecoder.decode([Bool].self, from: data)
-                DispatchQueue.main.async {
-                    completion(.success(results))
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    completion(.failure(SpotifyAPIError.decodingError(error)))
-                }
-            }
-        }.resume()
+        performRequest(request: request, expectingType: [Bool].self, completion: completion)
     }
     
     /// Save tracks to the user's library
     func saveTracksToLibrary(accessToken: String, trackIds: [String], completion: @escaping (Result<Void, Error>) -> Void) {
         logAPICall(#function, details: trackIds.joined(separator: ", "))
         
-        // Join IDs with comma separator
         let idsString = trackIds.joined(separator: ",")
-        guard let request = createRequest(path: "/me/tracks?ids=\(idsString)", method: "PUT", accessToken: accessToken) else {
+        let queryItems = [URLQueryItem(name: "ids", value: idsString)]
+        
+        guard let request = createRequest(path: "/me/tracks", method: .put, accessToken: accessToken, queryItems: queryItems) else {
             DispatchQueue.main.async {
                 completion(.failure(SpotifyAPIError.invalidURL))
             }
             return
         }
         
-        session.dataTask(with: request) { data, response, error in
-            // Handle network error
-            if let error = error {
-                DispatchQueue.main.async {
-                    completion(.failure(SpotifyAPIError.networkError(error)))
-                }
-                return
-            }
-            
-            // Validate HTTP response
-            guard let httpResponse = response as? HTTPURLResponse else {
-                DispatchQueue.main.async {
-                    completion(.failure(SpotifyAPIError.invalidResponse))
-                }
-                return
-            }
-            
-            // Check HTTP status code for success (200 or 201)
-            guard httpResponse.statusCode == 200 || httpResponse.statusCode == 201 else {
-                DispatchQueue.main.async {
-                    completion(.failure(SpotifyAPIError.httpError(httpResponse.statusCode)))
-                }
-                return
-            }
-            
-            DispatchQueue.main.async {
-                completion(.success(()))
-            }
-        }.resume()
+        performEmptyResponseRequest(request: request, successStatusCodes: [200, 201], completion: completion)
     }
     
     /// Remove tracks from the user's library
     func removeTracksFromLibrary(accessToken: String, trackIds: [String], completion: @escaping (Result<Void, Error>) -> Void) {
         logAPICall(#function, details: trackIds.joined(separator: ", "))
         
-        // Join IDs with comma separator
         let idsString = trackIds.joined(separator: ",")
-        guard let request = createRequest(path: "/me/tracks?ids=\(idsString)", method: "DELETE", accessToken: accessToken) else {
+        let queryItems = [URLQueryItem(name: "ids", value: idsString)]
+        
+        guard let request = createRequest(path: "/me/tracks", method: .delete, accessToken: accessToken, queryItems: queryItems) else {
             DispatchQueue.main.async {
                 completion(.failure(SpotifyAPIError.invalidURL))
             }
             return
         }
         
-        session.dataTask(with: request) { data, response, error in
-            // Handle network error
-            if let error = error {
-                DispatchQueue.main.async {
-                    completion(.failure(SpotifyAPIError.networkError(error)))
-                }
-                return
-            }
-            
-            // Validate HTTP response
-            guard let httpResponse = response as? HTTPURLResponse else {
-                DispatchQueue.main.async {
-                    completion(.failure(SpotifyAPIError.invalidResponse))
-                }
-                return
-            }
-            
-            // Check HTTP status code
-            guard httpResponse.statusCode == 200 else {
-                DispatchQueue.main.async {
-                    completion(.failure(SpotifyAPIError.httpError(httpResponse.statusCode)))
-                }
-                return
-            }
-            
-            DispatchQueue.main.async {
-                completion(.success(()))
-            }
-        }.resume()
+        performEmptyResponseRequest(request: request, completion: completion)
     }
     
     /// Add a track to the playback queue
     func addToQueue(accessToken: String, trackUri: String, completion: @escaping (Result<Void, Error>) -> Void) {
         logAPICall(#function, details: trackUri)
         
-        guard let encodedUri = trackUri.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let url = URL(string: "\(baseUrl)/me/player/queue?uri=\(encodedUri)") else {
+        guard let encodedUri = trackUri.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
             DispatchQueue.main.async {
                 completion(.failure(SpotifyAPIError.invalidURL))
             }
             return
         }
         
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        let queryItems = [URLQueryItem(name: "uri", value: encodedUri)]
         
-        session.dataTask(with: request) { data, response, error in
-            // Handle network error
-            if let error = error {
-                DispatchQueue.main.async {
-                    completion(.failure(SpotifyAPIError.networkError(error)))
-                }
-                return
-            }
-            
-            // Validate HTTP response
-            guard let httpResponse = response as? HTTPURLResponse else {
-                DispatchQueue.main.async {
-                    completion(.failure(SpotifyAPIError.invalidResponse))
-                }
-                return
-            }
-            
-            // Check HTTP status code
-            guard httpResponse.statusCode == 204 else {
-                DispatchQueue.main.async {
-                    completion(.failure(SpotifyAPIError.httpError(httpResponse.statusCode)))
-                }
-                return
-            }
-            
+        guard let request = createRequest(path: "/me/player/queue", method: .post, accessToken: accessToken, queryItems: queryItems) else {
             DispatchQueue.main.async {
-                completion(.success(()))
+                completion(.failure(SpotifyAPIError.invalidURL))
             }
-        }.resume()
+            return
+        }
+        
+        performEmptyResponseRequest(request: request, completion: completion)
     }
 
     // MARK: - Placeholder Methods
