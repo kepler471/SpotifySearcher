@@ -7,9 +7,23 @@
 
 import SwiftUI
 
+/// Displays a Spotify album with its artwork and associated artists
+///
+/// This view presents album information in a consistent format, including:
+/// - Album artwork
+/// - Album name (as a clickable link to open in Spotify)
+/// - List of contributing artists (as clickable links)
+///
+/// The view is designed to work within list contexts and maintains consistent
+/// styling with other media views in the application.
 struct AlbumView: View {
+    /// Artists who contributed to the album
     let artists: [Artist]
+    
+    /// The album to display
     let album: Album
+    
+    /// Artwork image for the album
     let artwork: Artwork
     
     var body: some View {

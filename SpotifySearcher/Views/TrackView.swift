@@ -7,32 +7,45 @@
 
 import SwiftUI
 
-//Might need to set frame sizes for the sub views that make up track view. Might then be best to forget about
-//                                    calculating the final app width, and just drop that external frame size.
-//                                    This way we might be able to get marquee working.
-
+/// Displays a Spotify track with its metadata
+///
+/// This view shows a track's essential information, including:
+/// - Album artwork
+/// - Track name (as a clickable link)
+/// - Artist names (as clickable links)
+/// - Album name (as a clickable link)
+///
+/// The view supports marquee scrolling for long text that doesn't fit within
+/// the allocated space.
+/// All text elements are links that open the corresponding resource in Spotify.
 struct TrackView: View {
+    /// The track to display
     let track: Track // TODO: Make these all Optionals
+    
+    /// Whether to enable marquee scrolling effect for track and album names
+    ///
+    /// Artist names always use marquee scrolling regardless of this setting.
     var isMarqueeActive = false
     
     var body: some View {
         HStack {
+            // Album artwork
             AsyncImage(url: URL(string: track.album.images.last!.url)!)
+            
+            // Track and artist information
             VStack(alignment: .leading) {
-                
+                // Track name with optional marquee effect
                 MarqueeView(track, linkType: .track, marquee: isMarqueeActive)
-//                    .fixedSize(horizontal: true, vertical: false)
                 
+                // Artist names with forced marquee effect
                 MarqueeView(track, linkType: .artists, marquee: true)
-//                    .fixedSize(horizontal: true, vertical: false)
-                
             }
             .frame(width: 300, alignment: .leading)
             
             Spacer()
             
+            // Album name with optional marquee effect
             MarqueeView(track, linkType: .album, marquee: isMarqueeActive)
-//                .fixedSize(horizontal: true, vertical: false)
         }
         .foregroundStyle(.secondary)
         .listRowSeparator(.hidden)

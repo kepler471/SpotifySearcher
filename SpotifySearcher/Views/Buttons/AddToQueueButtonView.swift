@@ -7,11 +7,27 @@
 
 import SwiftUI
 
+/// Button that adds a track to the Spotify playback queue
+///
+/// This button allows users to add a track to their Spotify queue without 
+/// interrupting their currently playing music. The button updates its appearance
+/// to reflect the current state:
+/// - Default state: Shows a "+" icon
+/// - Loading state: Shows a spinning progress indicator
+/// - Success state: Shows a checkmark briefly before returning to default state
+///
+/// The button is disabled during the API call to prevent multiple requests.
 struct AddToQueueButtonView: View {
+    /// Access to authentication context for API calls
     @EnvironmentObject var auth: Auth
+    
+    /// The track to add to the queue
     let track: Track
     
+    /// Whether an API request is currently in progress
     @State private var isAdding: Bool = false
+    
+    /// Whether the track was successfully added to the queue
     @State private var addSuccess: Bool = false
     
     var body: some View {

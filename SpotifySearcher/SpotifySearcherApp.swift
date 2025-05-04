@@ -9,6 +9,7 @@ import SwiftUI
 import HotKey
 import MenuBarExtraAccess
 
+/// Initial view shown at application startup
 struct PlaceholderView: View {
     // This should be a login view. appears on startup
     // Should show a spinner when auth stuff is happening.
@@ -22,26 +23,41 @@ struct PlaceholderView: View {
     }
 }
 
+/// Main application entry point for SpotifySearcher
+///
+/// This is the root of the app that:
+/// 1. Initializes authentication and player services
+/// 2. Handles OAuth redirect URLs and token exchange
+/// 3. Configures the app as a menu bar extra with a global hotkey
+/// 4. Provides the main content view with all required environment objects
 @main
 struct SpotifySearcherApp: App {
+    /// Authentication manager for Spotify API access
     @StateObject var auth = Auth()
+    
+    /// Player controller for Spotify playback
     @StateObject var player = Player()
+    
+    /// Whether detail view is showing
     @State private var showingDetail = false
+    
+    /// Whether the menu bar extra is currently presented
     @State var isMenuPresented: Bool = false
 
-//    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    
+    /// Global hotkey to toggle the app visibility (Cmd+Ctrl+S)
     let hotkey = HotKey(key: .s, modifiers: [.command, .control])
     
     var body: some Scene {
+        // Initial window that handles authentication
         Window("Home", id: "home") {
             PlaceholderView()
-//            ContentView()
                 .environmentObject(auth)
                 .environmentObject(player)
                 .onAppear {
                     player.auth = auth
+                    // Auto-close after 10 seconds
                     DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) { NSApplication.shared.mainWindow?.close() }
+                    // Set up hotkey handler
                     hotkey.keyDownHandler = {
                         isMenuPresented.toggle()
                     }
@@ -68,6 +84,7 @@ struct SpotifySearcherApp: App {
                 }
         }
         
+        // Menu bar extra where the main app interface lives
         MenuBarExtra("SpotifySearcher", systemImage: "music.note.list") {
             // TODO: add player timer pause toggle
             if #available(macOS 14.0, *) {

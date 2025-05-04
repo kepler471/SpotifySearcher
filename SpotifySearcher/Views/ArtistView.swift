@@ -7,7 +7,13 @@
 
 import SwiftUI
 
+/// Displays a Spotify artist as a clickable link
+///
+/// This view presents an artist's name as a clickable link that opens
+/// in Spotify. The view is designed to be simple and consistent with
+/// other media views in the application.
 struct ArtistView: View {
+    /// The artist to display
     let artist: Artist
     //    let artwork: Artwork
     

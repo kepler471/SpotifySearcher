@@ -9,6 +9,10 @@ import Foundation
 import SwiftUI
 import AVFoundation
 
+/// Adds an underline to content when hovered
+///
+/// This modifier provides a visual indication of interactive elements
+/// by showing an underline when the user hovers over the content.
 struct HoverUnderlineModifier: ViewModifier {
     @State private var isHovering: Bool = false
     
@@ -21,6 +25,14 @@ struct HoverUnderlineModifier: ViewModifier {
     }
 }
 
+/// Displays the currently playing Spotify track
+///
+/// This view shows information about the currently playing track in the persistent
+/// footer area of the app. It includes:
+/// - The track artwork, name, artists, and album
+/// - Like/unlike button for saving to the user's library
+/// - Play/pause button for controlling playback
+/// - A placeholder state when no track is playing
 struct CurrentTrackView: View {
     @EnvironmentObject var player: Player
     
@@ -59,6 +71,16 @@ struct CurrentTrackView: View {
         .environmentObject(PreviewData.MockAuth() as Auth)
 }
 
+/// Provides a 30-second audio preview of a track
+///
+/// This modal view allows the user to listen to a track's preview audio (if available)
+/// without interrupting their current Spotify playback. Features include:
+/// - Album artwork display
+/// - Volume control slider
+/// - Automatic audio playback on appearance
+/// - Automatic cleanup on dismissal
+///
+/// Note: Preview URLs are provided by Spotify and may not be available for all tracks.
 struct PreviewView: View {
     @State private var player: AVPlayer?
     @State private var volume: Double = 1.0
